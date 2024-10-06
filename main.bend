@@ -6,5 +6,5 @@ from equal import *
 
 main: u24
 main = 
-  let (a, b, c) = (P/Equal (LAM λx x) (LAM λx x) Bits/E)
+  let (a, b, c) = (P/Equal (LAM λx let (a, b) = (DUP x) (P/Sup a b)) (LAM λx x) Bits/E)
   c
