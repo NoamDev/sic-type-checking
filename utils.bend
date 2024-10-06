@@ -11,6 +11,9 @@ def Bits/to_u24(value):
     case Bits/E:
       return 1
 
+def Bits/split(bits: Bits) -> (Bits, Bits):
+  return (Bits/O(bits), Bits/I(bits))
+
 (String/concat (String/Cons head tail) other) = (String/Cons head (String/concat tail other))
 (String/concat String/Nil other) = other
 

@@ -74,8 +74,9 @@ Duplicate: P -> N -> N -> None
   let (type0, type1) = (DUP type)
   let (type0_ret, type0_f) = PChannel
   let (type1_ret, type1_f) = PChannel
-  let * = (Interact (P/Ann value0 type0 type0_f (Bits/O path)) fst)
-  let * = (Interact (P/Ann value1 type1 type1_f (Bits/I path)) snd)
+  let (opath, ipath) = (Bits/split path)
+  let * = (Interact (P/Ann value0 type0 type0_f opath) fst)
+  let * = (Interact (P/Ann value1 type1 type1_f ipath) snd)
   let * = (return_type (P/Sup type0_ret type1_ret))
   *
 (Duplicate (P/Arrow A B) fst snd) =
@@ -117,13 +118,14 @@ Apply: P -> P -> N -> None
   let * = (Interact (P/Var v) (N/App arg res))
   *
 (Apply (P/Ann value (P/Arrow A B) return_type path) arg res) =
-  let (arg, A, chk) = (Check arg A (Bits/O path))
+  let (opath, ipath) = (Bits/split path)
+  let (arg, A, chk) = (Check arg A opath)
   (
     if chk {
       λvalueλAλBλreturn_typeλargλres
       let (B_ret, B_f) = PChannel
       let * = (return_type (P/Arrow A B_ret))
-      let * = (Interact (P/Ann (APP value arg) B B_f (Bits/I path)) res)
+      let * = (Interact (P/Ann (APP value arg) B B_f ipath) res)
       *
     } else {
       λvalueλAλBλreturn_typeλargλres

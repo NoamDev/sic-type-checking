@@ -6,8 +6,9 @@ Check: P -> P -> Bits -> (P, P, u24)
 (Check (P/Lam var bod) (P/Arrow A B) path) =
   let (A_ret, A_f) = PChannel
   let (xp, xn) = Wire
-  let res = (APP (P/Lam var bod) (P/Ann xp A A_f (Bits/O path)))
-  let (res, B, chk) = (Check res B (Bits/I path))
+  let (opath, ipath) = (Bits/split path)
+  let res = (APP (P/Lam var bod) (P/Ann xp A A_f opath))
+  let (res, B, chk) = (Check res B ipath)
   ((P/Lam xn res), (P/Arrow A_ret B), chk)
 (Check (P/Ann value type1 return_type1 path1) type2 path2) =
   let (type1, type2, eql) = (P/Equal type1 type2 path2)

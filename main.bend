@@ -4,8 +4,9 @@ from dsl import *
 from check import *
 from equal import *
 
-main: u24
 main = 
-  let (a, b, c) = (P/Equal (LAM λf (LAM λx (APP f x))) (LAM λf f) Bits/E)
-  # let (a, b, c) = (P/Equal (LAM λx let (x0, x1) = (DUP x) (P/Sup x0 x1)) (LAM λf f) Bits/E)
-  c
+  let f = (LAM λ$x $y)
+  let g = (LAM λ$y $x)
+  let (_, _, f_chk) = (Check f (P/Arrow P/None P/None) (Bits/O Bits/E))
+  let (_, _, g_chk) = (Check g (P/Arrow P/None P/None) (Bits/I Bits/E))
+  (f_chk, g_chk)
