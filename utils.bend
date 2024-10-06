@@ -1,3 +1,6 @@
+unchecked PChannel: (P, P -> None) 
+PChannel = ($x, λ$x(*))
+
 type Bits = (I ~v) | (O ~v) | E
 def Bits/to_u24(value):
   fold value:

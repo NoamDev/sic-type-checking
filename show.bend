@@ -33,7 +33,7 @@ P/Show: P -> Bits -> (P, String)
 
 (P/Show P/None path) = (P/None, "None")
 (P/Show P/Error path) = (P/Error, "Error")
-(P/Show (P/Ann value type return_type) path) =
+(P/Show (P/Ann value type return_type ann_path) path) =
   let (value, value_str) = (P/Show value (Bits/O path))
   let (type, type_str) = (P/Show type (Bits/I path))
   let str = (List/join [
@@ -43,7 +43,7 @@ P/Show: P -> Bits -> (P, String)
     type_str
     "}"
   ])
-  ((P/Ann value type return_type), str)
+  ((P/Ann value type return_type ann_path), str)
 (P/Show (P/Arrow A B) path) = 
   let (A, A_str) = (P/Show A (Bits/O path))
   let (B, B_str) = (P/Show B (Bits/I path))

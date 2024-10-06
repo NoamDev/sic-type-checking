@@ -140,8 +140,8 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
 
 (P/Equal (P/Arrow A B) b path) = ((P/Arrow A B), b, 0)
 
-(P/Equal (P/Ann value0 type0 return_type0) (P/Ann value1 type1 return_type1) path) =
+(P/Equal (P/Ann value0 type0 return_type0 ann_path0) (P/Ann value1 type1 return_type1 ann_path1) path) =
   let (value0, value1, eql) = (P/Equal value0 value1 path)
-  ((P/Ann value0 type0 return_type0), (P/Ann value1 type1 return_type1), eql)
-(P/Equal (P/Ann value0 type0 return_type0) b path) =
-  ((P/Ann value0 type0 return_type0), b, 0)
+  ((P/Ann value0 type0 return_type0 ann_path0), (P/Ann value1 type1 return_type1 ann_path1), eql)
+(P/Equal (P/Ann value0 type0 return_type0 ann_path) b path) =
+  ((P/Ann value0 type0 return_type0 ann_path), b, 0)

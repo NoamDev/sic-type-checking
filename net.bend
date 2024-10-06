@@ -6,7 +6,7 @@ type P:
   Lam {var: N, bod: P}
   Sup {fst: P, snd: P}
   Var {v: Var}
-  Ann {value: P, type: P, return_type: P -> None}
+  Ann {value: P, type: P, return_type: P -> None, path: Bits}
   None
   Arrow {from: P, to: P}
   Error
@@ -69,11 +69,11 @@ unchecked Duplicate: P -> N -> N -> None
   let * = (Interact (P/Lam var0n bod0) f0)
   let * = (Interact (P/Lam var1n bod1) f1)
   *
-(Duplicate (P/Ann value type return_type) fst snd) =
+(Duplicate (P/Ann value type return_type path) fst snd) =
   let (value0, value1) = (DUP value)
   let (type0, type1) = (DUP type)
-  let * = (Interact (P/Ann value0 type0 λ$type0(*)) fst)
-  let * = (Interact (P/Ann value1 type1 λ$type1(*)) snd)
+  let * = (Interact (P/Ann value0 type0 λ$type0(*) (Bits/O path)) fst)
+  let * = (Interact (P/Ann value1 type1 λ$type1(*) (Bits/I path)) snd)
   let * = (return_type (P/Sup $type0 $type1))
   *
 (Duplicate (P/Arrow A B) fst snd) =
@@ -86,7 +86,7 @@ unchecked Duplicate: P -> N -> N -> None
   let * = (Interact (P/Var v) (N/Dup fst snd))
   *
 
-unchecked Apply: P -> P -> N -> None
+Apply: P -> P -> N -> None
 (Apply P/Era arg res) =
   let * = (Erase arg)
   let * = (Interact P/Era res)
@@ -114,13 +114,14 @@ unchecked Apply: P -> P -> N -> None
 (Apply (P/Var v) arg res) =
   let * = (Interact (P/Var v) (N/App arg res))
   *
-(Apply (P/Ann value (P/Arrow A B) return_type) arg res) =
-  let (arg, A, chk) = (Check arg A)
+(Apply (P/Ann value (P/Arrow A B) return_type path) arg res) =
+  let (arg, A, chk) = (Check arg A (Bits/O path))
   (
     if chk {
       λvalueλAλBλreturn_typeλargλres
-      let * = (return_type (P/Arrow A $B))
-      let * = (Interact (P/Ann (APP value arg) B λ$B(*)) res)
+      let (B_ret, B_f) = PChannel
+      let * = (return_type (P/Arrow A B_ret))
+      let * = (Interact (P/Ann (APP value arg) B B_f (Bits/I path)) res)
       *
     } else {
       λvalueλAλBλreturn_typeλargλres
@@ -133,7 +134,7 @@ unchecked Apply: P -> P -> N -> None
     value A B return_type arg res
   )
 
-(Apply (P/Ann value type return_type) arg res) =
+(Apply (P/Ann value type return_type path) arg res) =
   let * = (Error value)
   let * = (return_type type)
   let * = (Error arg)
@@ -161,7 +162,7 @@ Erase: P -> None
 (Erase (P/Var v)) =
   let * = (Interact (P/Var v) N/Era)
   *
-(Erase (P/Ann value type return_type)) =
+(Erase (P/Ann value type return_type path)) =
   let * = (Erase value)
   let * = (return_type type)
   *
@@ -178,7 +179,7 @@ Error: P -> None
   let * = (Error fst)
   let * = (Error snd)
   *
-(Error (P/Ann value type return_type)) =
+(Error (P/Ann value type return_type path)) =
   let * = (Error value)
   let * = (return_type type)
   *
