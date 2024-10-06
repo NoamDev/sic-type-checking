@@ -18,9 +18,12 @@ DUP: P -> (P, P)
   let * = (Interact x (N/Dup x0n x1n))
   (x0p, x1p)
 
-SUP: P -> P -> P
-(SUP fst snd) =
-  (P/Sup fst snd)
+SUP: N -> (N, N)
+(SUP x) =
+  let (x0p, x0n) = Wire
+  let (x1p, x1n) = Wire
+  let * = (Interact x (P/Sup x0p x1p))
+  (x0n, x1n)
 
 ERA: P -> None
 (ERA x) = (Interact x N/Era)

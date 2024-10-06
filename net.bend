@@ -30,11 +30,11 @@ Interact: P -> N -> None
 (Interact (P/Var (Var/Node a)) b) = 
   let * = (Interact a b)
   *
-(Interact (P/Var (Var/Fold data f)) b) = 
-  let * = (f (FoldArg/Node b))
-  *
 (Interact a (N/Var b)) = 
   let * = (b (Var/Node a))
+  *
+(Interact (P/Var (Var/Fold data f)) b) = 
+  let * = (f (FoldArg/Node b))
   *
 (Interact a (N/Dup fst snd)) = (Duplicate a fst snd)
 (Interact a (N/App arg res)) = (Apply a arg res)
