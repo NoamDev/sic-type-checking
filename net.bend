@@ -3,7 +3,7 @@ type P:
   Lam {var: N, bod: P}
   Sup {fst: P, snd: P}
   Var {v: Var}
-  Ann {value: P, type: P}
+  Ann {value: P, type: P, return_type: P -> None}
   None
   Arrow {from: P, to: P}
   Error
@@ -41,7 +41,7 @@ Interact: P -> N -> None
 (Interact a N/Era) = (Erase a)
 (Interact a N/Error) = (Error a)
 
-Duplicate: P -> N -> N -> None
+unchecked Duplicate: P -> N -> N -> None
 (Duplicate P/Era fst snd) =
   let * = (Interact P/Era fst)
   let * = (Interact P/Era snd)
@@ -66,11 +66,12 @@ Duplicate: P -> N -> N -> None
   let * = (Interact (P/Lam var0n bod0) f0)
   let * = (Interact (P/Lam var1n bod1) f1)
   *
-(Duplicate (P/Ann value type) fst snd) =
+(Duplicate (P/Ann value type return_type) fst snd) =
   let (value0, value1) = (DUP value)
   let (type0, type1) = (DUP type)
-  let * = (Interact (P/Ann value0 type0) fst)
-  let * = (Interact (P/Ann value1 type1) snd)
+  let * = (Interact (P/Ann value0 type0 λ$type0(*)) fst)
+  let * = (Interact (P/Ann value1 type1 λ$type1(*)) snd)
+  let * = (return_type (P/Sup $type0 $type1))
   *
 (Duplicate (P/Arrow A B) fst snd) =
   let (A0, A1) = (DUP A)
@@ -110,9 +111,9 @@ Apply: P -> P -> N -> None
 (Apply (P/Var v) arg res) =
   let * = (Interact (P/Var v) (N/App arg res))
   *
-(Apply (P/Ann value type) arg res) =
+(Apply (P/Ann value type return_type) arg res) =
   let * = (Error value)
-  let * = (Error type)
+  let * = (return_type type)
   let * = (Error arg)
   let * = (Interact P/Era res)
   *
@@ -138,9 +139,9 @@ Erase: P -> None
 (Erase (P/Var v)) =
   let * = (Interact (P/Var v) N/Era)
   *
-(Erase (P/Ann value type)) =
+(Erase (P/Ann value type return_type)) =
   let * = (Erase value)
-  let * = (Erase type)
+  let * = (return_type type)
   *
 (Erase (P/Arrow A B)) =
   let * = (Erase A)
@@ -155,9 +156,9 @@ Error: P -> None
   let * = (Error fst)
   let * = (Error snd)
   *
-(Error (P/Ann value type)) =
+(Error (P/Ann value type return_type)) =
   let * = (Error value)
-  let * = (Error type)
+  let * = (return_type type)
   *
 (Error (P/Lam var bod)) =
   let * = (Interact P/Error var)
