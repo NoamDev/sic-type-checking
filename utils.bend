@@ -1,0 +1,15 @@
+type Bits = (I ~v) | (O ~v) | E
+def Bits/to_u24(value):
+  fold value:
+    case Bits/O:
+      return value.v * 2
+    case Bits/I:
+      return value.v * 2 + 1
+    case Bits/E:
+      return 1
+
+(String/concat (String/Cons head tail) other) = (String/Cons head (String/concat tail other))
+(String/concat String/Nil other) = other
+
+(List/join List/Nil)         = ""
+(List/join (List/Cons x xs)) = (String/concat x (List/join xs))
