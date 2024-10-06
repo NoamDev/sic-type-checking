@@ -11,6 +11,7 @@ def resolve_line(line):
         return line
 
 def resolve(filename, imports):
+    imports.add(filename)
     content = open(filename).read()
     lines = content.split("\n")
     code = ""
@@ -18,7 +19,6 @@ def resolve(filename, imports):
         if m := re.match(r"^from (?P<file>.*) import \*$", line):
             file = f'{m.group("file")}.bend'
             if file not in imports:
-                imports.add(file)
                 code += resolve(file, imports)
         else:
             code += line + "\n"
@@ -26,7 +26,8 @@ def resolve(filename, imports):
 
 file = sys.argv[2]
 resolved_file = f"{file}.resolved"
-open(resolved_file, 'w').write(resolve(file, set()))
+imports = set()
+open(resolved_file, 'w').write(resolve(file, imports))
 args = sys.argv[:]
 args[0] = "bend"
 args[2] = resolved_file

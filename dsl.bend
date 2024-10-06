@@ -22,7 +22,7 @@ SUP: N -> (N, N)
 (SUP x) =
   let (x0p, x0n) = Wire
   let (x1p, x1n) = Wire
-  let * = (Interact x (P/Sup x0p x1p))
+  let * = (Interact (P/Sup x0p x1p) x)
   (x0n, x1n)
 
 ERA: P -> None

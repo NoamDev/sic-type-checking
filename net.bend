@@ -1,3 +1,6 @@
+from dsl import *
+from check import *
+
 type P:
   Era
   Lam {var: N, bod: P}
@@ -195,5 +198,3 @@ unchecked Net/fold: (Var -> None) -> Any -> Any
 (Net/fold var_func data0) = 
   let * = (var_func (Var/Fold data0 λ$arg(*)))
   $arg
-
-
