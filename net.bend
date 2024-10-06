@@ -83,7 +83,7 @@ unchecked Duplicate: P -> N -> N -> None
   let * = (Interact (P/Var v) (N/Dup fst snd))
   *
 
-Apply: P -> P -> N -> None
+unchecked Apply: P -> P -> N -> None
 (Apply P/Era arg res) =
   let * = (Erase arg)
   let * = (Interact P/Era res)
@@ -111,11 +111,30 @@ Apply: P -> P -> N -> None
 (Apply (P/Var v) arg res) =
   let * = (Interact (P/Var v) (N/App arg res))
   *
+(Apply (P/Ann value (P/Arrow A B) return_type) arg res) =
+  let (arg, A, chk) = (Check arg A)
+  (
+    if chk {
+      λvalueλAλBλreturn_typeλargλres
+      let * = (return_type (P/Arrow A $B))
+      let * = (Interact (P/Ann (APP value arg) B λ$B(*)) res)
+      *
+    } else {
+      λvalueλAλBλreturn_typeλargλres
+      let * = (Error value)
+      let * = (return_type (P/Arrow A B))
+      let * = (Error arg)
+      let * = (Interact P/Error res)
+      *
+    }
+    value A B return_type arg res
+  )
+
 (Apply (P/Ann value type return_type) arg res) =
   let * = (Error value)
   let * = (return_type type)
   let * = (Error arg)
-  let * = (Interact P/Era res)
+  let * = (Interact P/Error res)
   *
 (Apply (P/Arrow A B) arg res) =
   let * = (Error A)
