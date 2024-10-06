@@ -8,11 +8,15 @@ unchecked Check: P -> P -> (P, P, u24)
   ((LAM λ$x res), (P/Arrow A B), chk)
 (Check (P/Ann value type1) type2) =
   let (type1, type2, eql) = (Equal type1 type2)
-  let * = (Erase type1)
-  (value, type2, eql)
+  ((P/Ann value type1), type2, eql)
 (Check (P/Var (Var/Node value)) type) = (Check value type)
 (Check value (P/Var (Var/Node type))) = (Check value type)
 (Check a b) = (a, b, 0)
+
+
+
+
+
 
 Equal: P -> P -> (P, P, u24)
 (Equal P/None P/None) = (P/None, P/None, 1)
