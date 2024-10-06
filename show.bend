@@ -31,6 +31,11 @@ P/Show: P -> Bits -> String
   (P/Show type (Bits/I path))
   "}"
 ])
+(P/Show (P/Arrow A B) path) = (List/join [
+  (P/Show A (Bits/O path))
+  "->"
+  (P/Show B (Bits/I path))
+])
 
 N/Show: N -> Bits -> String
 (N/Show (N/Era) path) = "*"

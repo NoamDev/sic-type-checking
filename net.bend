@@ -5,6 +5,7 @@ type P:
   Var {v: Var}
   Ann {value: P, type: P}
   None
+  Arrow {from: P, to: P}
   Error
 
 type N:
@@ -71,6 +72,12 @@ Duplicate: P -> N -> N -> None
   let * = (Interact (P/Ann value0 type0) fst)
   let * = (Interact (P/Ann value1 type1) snd)
   *
+(Duplicate (P/Arrow A B) fst snd) =
+  let (A0, A1) = (DUP A)
+  let (B0, B1) = (DUP B)
+  let * = (Interact (P/Arrow A0 B0) fst)
+  let * = (Interact (P/Arrow A1 B1) snd)
+  *
 (Duplicate (P/Var v) fst snd) =
   let * = (Interact (P/Var v) (N/Dup fst snd))
   *
@@ -109,6 +116,12 @@ Apply: P -> P -> N -> None
   let * = (Error arg)
   let * = (Interact P/Era res)
   *
+(Apply (P/Arrow A B) arg res) =
+  let * = (Error A)
+  let * = (Error B)
+  let * = (Error arg)
+  let * = (Interact P/Error res)
+  *
 
 Erase: P -> None
 (Erase P/Era) = *
@@ -129,6 +142,10 @@ Erase: P -> None
   let * = (Erase value)
   let * = (Erase type)
   *
+(Erase (P/Arrow A B)) =
+  let * = (Erase A)
+  let * = (Erase B)
+  *
 
 Error: P -> None
 (Error P/Era) = *
@@ -145,6 +162,10 @@ Error: P -> None
 (Error (P/Lam var bod)) =
   let * = (Interact P/Error var)
   let * = (Error bod)  
+  *
+(Error (P/Arrow A B)) =
+  let * = (Error A)
+  let * = (Error B)
   *
 (Error (P/Var v)) =
   let * = (Interact (P/Var v) N/Error)
