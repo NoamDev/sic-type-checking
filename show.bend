@@ -49,9 +49,11 @@ P/Show: P -> Bits -> (P, String)
   let (A, A_str) = (P/Show A (Bits/O path))
   let (B, B_str) = (P/Show B (Bits/I path))
   let str = (List/join [
+    "("
     A_str
     "->"
     B_str
+    ")"
   ])
   ((P/Arrow A B), str)
 
