@@ -17,20 +17,6 @@ N/Equal: N -> N -> Bits -> (N, N, u24)
 (N/Equal N/Error b path) = (N/Error, b, 0)
 (N/Equal a N/Error path) = (a, N/Error, 0)
 
-(N/Equal (N/Dup a0 a1) (N/Dup b0 b1) path) =
-  let (a0, b0, eql0) = (N/Equal a0 b0 (Bits/O path))
-  let (a1, b1, eql1) = (N/Equal a1 b1 (Bits/I path))
-  ((N/Dup a0 a1), (N/Dup b0 b1), (& eql0 eql1))
-
-(N/Equal (N/Dup a0 a1) b path) =
-  let (b0, b1) = (SUP b)
-  (N/Equal (N/Dup a0 a1) (N/Dup b0 b1) path)
-
-(N/Equal a (N/Dup b0 b1) path) =
-  let (a0, a1) = (SUP a)
-  (N/Equal (N/Dup a0 a1) (N/Dup b0 b1) path)
-
-
 (N/Equal (N/Var f0) (N/Var f1) path) =
   let idx = (Bits/to_u24 path)
   let arg0 = (Net/fold f0 idx)
@@ -58,6 +44,19 @@ N/Equal: N -> N -> Bits -> (N, N, u24)
     }
     a
   )
+
+(N/Equal (N/Dup a0 a1) (N/Dup b0 b1) path) =
+  let (a0, b0, eql0) = (N/Equal a0 b0 (Bits/O path))
+  let (a1, b1, eql1) = (N/Equal a1 b1 (Bits/I path))
+  ((N/Dup a0 a1), (N/Dup b0 b1), (& eql0 eql1))
+
+(N/Equal (N/Dup a0 a1) b path) =
+  let (b0, b1) = (SUP b)
+  (N/Equal (N/Dup a0 a1) (N/Dup b0 b1) path)
+
+(N/Equal a (N/Dup b0 b1) path) =
+  let (a0, a1) = (SUP a)
+  (N/Equal (N/Dup a0 a1) (N/Dup b0 b1) path)
 
 (N/Equal N/Era N/Era path) = (N/Era, N/Era, 1)
 (N/Equal N/Era b path) = (N/Era, b, 0)
@@ -87,6 +86,15 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
   let (b0, b1) = (DUP (P/Var (Var/Fold data f)))
   (P/Equal (P/Sup a0 a1) (P/Sup b0 b1) path)
 
+(P/Equal (P/Var (Var/Fold data f)) (P/Lam var1 bod1) path) =
+  let (var0p, var0n) = Wire
+  let bod0 = (APP (P/Var (Var/Fold data f)) var0p)
+  (P/Equal (P/Lam var0n bod0) (P/Lam var1 bod1) path)
+
+(P/Equal (P/Lam var0 bod0) (P/Var (Var/Fold data f)) path) =
+  let (var1p, var1n) = Wire
+  let bod1 = (APP (P/Var (Var/Fold data f)) var1p)
+  (P/Equal (P/Lam var0 bod0) (P/Lam var1n bod1) path)
 
 (P/Equal (P/Var (Var/Fold data f)) b path) =
   let (wp, wn) = Wire
@@ -117,7 +125,6 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
 (P/Equal P/None b path) = (P/None, b, 0)
 (P/Equal P/Era P/Era path) = (P/Era, P/Era, 1)
 (P/Equal P/Era b path) = (P/Era, b, 0)
-
 
 (P/Equal (P/Lam var0 bod0) (P/Lam var1 bod1) path) =
   let (var0, var1, eql_var) = (N/Equal var0 var1 (Bits/O path))
