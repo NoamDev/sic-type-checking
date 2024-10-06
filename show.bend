@@ -2,7 +2,7 @@ from net import *
 from utils import *
 
 P/Show: P -> Bits -> (P, String)
-(P/Show (P/Era) path) = "*"
+(P/Show (P/Era) path) = (P/Era, "*")
 (P/Show (P/Lam var bod) path) = 
   let (var, var_str) = (N/Show var (Bits/O path))
   let (bod, bod_str) = (P/Show bod (Bits/I path))
@@ -15,20 +15,22 @@ P/Show: P -> Bits -> (P, String)
   ])
   ((P/Lam var bod), str)
 (P/Show (P/Sup fst snd) path) =
-  let (fst, fst_str) = (P/Show fst (Bits/O path))
-  let (snd, snd_str) = (P/Show snd (Bits/I path))
-  let str = (List/join [
-  "["
-  fst_str
-  " "
-  snd_str
-  "]"
-  ])
-  ((P/Sup fst snd) str)
+  # let (fst, fst_str) = (P/Show fst (Bits/O path))
+  # let (snd, snd_str) = (P/Show snd (Bits/I path))
+  # let str = (List/join [
+  # "["
+  # fst_str
+  # " "
+  # snd_str
+  # "]"
+  # ])
+  let str = ""
+  ((P/Sup fst snd), str)
 (P/Show (P/Var (Var/Node a)) path) = (P/Show a path)
 (P/Show (P/Var (Var/Fold data f)) path) =
-  let * = (f (FoldArg/Data *))
-  data
+  let (wp, wn) = Wire
+  let * = (f (FoldArg/Data "" wn))
+  (wp, data)
 
 (P/Show P/None path) = (P/None, "None")
 (P/Show P/Error path) = (P/Error, "Error")
@@ -42,7 +44,7 @@ P/Show: P -> Bits -> (P, String)
     type_str
     "}"
   ])
-  ((P/Ann value type) str)
+  ((P/Ann value type), str)
 (P/Show (P/Arrow A B) path) = 
   let (A, A_str) = (P/Show A (Bits/O path))
   let (B, B_str) = (P/Show B (Bits/I path))
@@ -83,8 +85,8 @@ N/Show: N -> Bits -> (N, String)
   let arg = (Net/fold f idx)
   match arg {
     FoldArg/Node: (N/Show arg.node path)
-    FoldArg/Data: idx
+    FoldArg/Data: (arg.var, idx)
   }
 
-Print: P -> String
+Print: P -> (P, String)
 (Print x) = (P/Show x Bits/E)

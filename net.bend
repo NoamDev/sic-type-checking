@@ -21,7 +21,7 @@ type Var:
 
 type FoldArg:
   Node {node: N}
-  Data {data: Any}
+  Data {data: Any, var: N}
 
 unchecked Wire: (P, N)
 (Wire) = ((P/Var $a), (N/Var λ$a *))
