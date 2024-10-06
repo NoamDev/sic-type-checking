@@ -44,7 +44,7 @@ Interact: P -> N -> None
 (Interact a N/Era) = (Erase a)
 (Interact a N/Error) = (Error a)
 
-unchecked Duplicate: P -> N -> N -> None
+Duplicate: P -> N -> N -> None
 (Duplicate P/Era fst snd) =
   let * = (Interact P/Era fst)
   let * = (Interact P/Era snd)
@@ -72,9 +72,11 @@ unchecked Duplicate: P -> N -> N -> None
 (Duplicate (P/Ann value type return_type path) fst snd) =
   let (value0, value1) = (DUP value)
   let (type0, type1) = (DUP type)
-  let * = (Interact (P/Ann value0 type0 λ$type0(*) (Bits/O path)) fst)
-  let * = (Interact (P/Ann value1 type1 λ$type1(*) (Bits/I path)) snd)
-  let * = (return_type (P/Sup $type0 $type1))
+  let (type0_ret, type0_f) = PChannel
+  let (type1_ret, type1_f) = PChannel
+  let * = (Interact (P/Ann value0 type0 type0_f (Bits/O path)) fst)
+  let * = (Interact (P/Ann value1 type1 type1_f (Bits/I path)) snd)
+  let * = (return_type (P/Sup type0_ret type1_ret))
   *
 (Duplicate (P/Arrow A B) fst snd) =
   let (A0, A1) = (DUP A)
