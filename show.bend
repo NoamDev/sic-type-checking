@@ -15,16 +15,15 @@ P/Show: P -> Bits -> (P, String)
   ])
   ((P/Lam var bod), str)
 (P/Show (P/Sup fst snd) path) =
-  # let (fst, fst_str) = (P/Show fst (Bits/O path))
-  # let (snd, snd_str) = (P/Show snd (Bits/I path))
-  # let str = (List/join [
-  # "["
-  # fst_str
-  # " "
-  # snd_str
-  # "]"
-  # ])
-  let str = ""
+  let (fst, fst_str) = (P/Show fst (Bits/O path))
+  let (snd, snd_str) = (P/Show snd (Bits/I path))
+  let str = (List/join [
+  "["
+  fst_str
+  " "
+  snd_str
+  "]"
+  ])
   ((P/Sup fst snd), str)
 (P/Show (P/Var (Var/Node a)) path) = (P/Show a path)
 (P/Show (P/Var (Var/Fold data f)) path) =
