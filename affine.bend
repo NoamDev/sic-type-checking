@@ -36,6 +36,9 @@ P/Affine: P -> Bits -> (P, u24)
   let (value, value_aff) = (P/Affine value path)
   let (type, type_aff) = (P/Affine value path)
   ((P/Ann value type return_type ann_path), (& value_aff type_aff))
+(P/Affine (P/Aff type) path) =
+  let (type, type_aff) = (P/Affine type path)
+  ((P/Aff type), type_aff)
 
 N/Affine: N -> Bits -> (N, u24)
 (N/Affine N/Error path) = (N/Error, 0)

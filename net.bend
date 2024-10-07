@@ -1,6 +1,6 @@
 from utils import *
 from dsl import *
-# from check import *
+from check import *
 
 type P:
   Era
@@ -10,6 +10,7 @@ type P:
   Ann {value: P, type: P, return_type: P -> None, path: Bits}
   None
   Arrow {from: P, to: P}
+  Aff {type: P}
   Error
 
 type N:
@@ -89,6 +90,11 @@ Duplicate: P -> N -> N -> None
   let * = (Interact (P/Arrow A0 B0) fst)
   let * = (Interact (P/Arrow A1 B1) snd)
   *
+(Duplicate (P/Aff type) fst snd) =
+  let (type0, type1) = (DUP type)
+  let * = (Interact (P/Aff type0) fst)
+  let * = (Interact (P/Aff type1) snd)
+  *
 (Duplicate (P/Var v) fst snd) =
   let * = (Interact (P/Var v) (N/Dup fst snd))
   *
@@ -123,7 +129,7 @@ Apply: P -> P -> N -> None
   *
 (Apply (P/Ann value (P/Arrow A B) return_type path) arg res) =
   let (opath, ipath) = (Bits/split path)
-  let (arg, A, chk) = (arg, A, 0)#(Check arg A opath)
+  let (arg, A, chk) = (Check arg A opath)
   (
     if chk {
       λvalueλAλBλreturn_typeλargλres
@@ -154,6 +160,11 @@ Apply: P -> P -> N -> None
   let * = (Error arg)
   let * = (Interact P/Error res)
   *
+(Apply (P/Aff type) arg res) =
+  let * = (Error type)
+  let * = (Error arg)
+  let * = (Interact P/Error res)
+  *
 
 Erase: P -> None
 (Erase P/Era) = *
@@ -179,6 +190,9 @@ Erase: P -> None
   let * = (Erase B)
   *
 
+(Erase (P/Aff type)) =
+  let * = (Erase type)
+  *
 Error: P -> None
 (Error P/Era) = *
 (Error P/None) = *
@@ -198,6 +212,9 @@ Error: P -> None
 (Error (P/Arrow A B)) =
   let * = (Error A)
   let * = (Error B)
+  *
+(Error (P/Aff type)) =
+  let * = (Error type)
   *
 (Error (P/Var v)) =
   let * = (Interact (P/Var v) N/Error)

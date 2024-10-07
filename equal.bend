@@ -166,6 +166,13 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
 (P/Equal (P/Ann value0 type0 return_type0 ann_path) b path) =
   ((P/Ann value0 type0 return_type0 ann_path), b, 0)
 
+(P/Equal (P/Aff type0) (P/Aff type1) path) =
+  let (type0, type1, eql) = (P/Equal type0 type1 path)
+  ((P/Aff type0), (P/Aff type1), eql)
+
+(P/Equal (P/Aff type0) b path) =
+  ((P/Aff type0), b, 0)
+
 unchecked Equal/fold: (Var -> None) -> u24 -> (FoldArg u24)
 (Equal/fold var_fun data) =
   let * = (var_fun (Var/Fold (Fold/Equal data λ$arg(*))))

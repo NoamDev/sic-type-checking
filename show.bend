@@ -64,6 +64,15 @@ P/Show: P -> Bits -> (P, String)
   ])
   ((P/Arrow A B), str)
 
+(P/Show (P/Aff type) path) =
+  let (type, type_str) = (P/Show type path)
+  let str = (List/join [
+    "(Aff "
+    type_str
+    ")"
+  ])
+  ((P/Aff type), str)
+
 N/Show: N -> Bits -> (N, String)
 (N/Show (N/Era) path) = (N/Era, "*")
 (N/Show (N/Error) path) = (N/Error, "Error")
