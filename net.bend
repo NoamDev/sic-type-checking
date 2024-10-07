@@ -1,5 +1,6 @@
+from utils import *
 from dsl import *
-from check import *
+# from check import *
 
 type P:
   Era
@@ -20,11 +21,15 @@ type N:
 
 type Var:
   Node {node: P}
-  Fold {data: Any, f: FoldArg -> None}
+  Fold {fold: Fold}
 
-type FoldArg:
+type Fold:
+  Show {data: String, f: FoldArg(String) -> None }
+  Equal {data: u24, f: FoldArg(u24) -> None}
+
+type FoldArg(T):
   Node {node: N}
-  Data {data: Any, var: N}
+  Data {data: T, var: N}
 
 unchecked Wire: (P, N)
 (Wire) = ((P/Var $a), (N/Var λ$a *))
@@ -36,9 +41,7 @@ Interact: P -> N -> None
 (Interact a (N/Var b)) = 
   let * = (b (Var/Node a))
   *
-(Interact (P/Var (Var/Fold data f)) b) = 
-  let * = (f (FoldArg/Node b))
-  *
+(Interact (P/Var (Var/Fold f)) b) = (Fold f b)
 (Interact a (N/Dup fst snd)) = (Duplicate a fst snd)
 (Interact a (N/App arg res)) = (Apply a arg res)
 (Interact a N/Era) = (Erase a)
@@ -119,7 +122,7 @@ Apply: P -> P -> N -> None
   *
 (Apply (P/Ann value (P/Arrow A B) return_type path) arg res) =
   let (opath, ipath) = (Bits/split path)
-  let (arg, A, chk) = (Check arg A opath)
+  let (arg, A, chk) = (arg, A, 0)#(Check arg A opath)
   (
     if chk {
       λvalueλAλBλreturn_typeλargλres
@@ -199,7 +202,10 @@ Error: P -> None
   let * = (Interact (P/Var v) N/Error)
   *
 
-unchecked Net/fold: (Var -> None) -> Any -> Any
-(Net/fold var_func data0) = 
-  let * = (var_func (Var/Fold data0 λ$arg(*)))
-  $arg
+(Fold (Fold/Show data f) b) =
+  let * = (f (FoldArg/Node b))
+  *
+
+(Fold (Fold/Equal data f) b) =
+  let * = (f (FoldArg/Node b))
+  *

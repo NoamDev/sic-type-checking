@@ -28,10 +28,14 @@ P/Show: P -> Bits -> (P, String)
   ])
   ((P/Sup fst snd), str)
 (P/Show (P/Var (Var/Node a)) path) = (P/Show a path)
-(P/Show (P/Var (Var/Fold data f)) path) =
+(P/Show (P/Var (Var/Fold (Fold/Show data f))) path) =
   let (wp, wn) = Wire
   let * = (f (FoldArg/Data "" wn))
   (wp, data)
+
+(P/Show (P/Var (Var/Fold (Fold/Equal data f))) path) =
+  let * = (f (FoldArg/Node N/Error))
+  (P/Error, "Error")
 
 (P/Show P/None path) = (P/None, "None")
 (P/Show P/Error path) = (P/Error, "Error")
@@ -88,13 +92,18 @@ N/Show: N -> Bits -> (N, String)
   ])
   ((N/Dup fst snd), str)
 (N/Show (N/Var f) path) =
-let (path1, path2) = (Bits/duplicate path)
+  let (path1, path2) = (Bits/duplicate path)
   let (idx1, idx2) = (String/duplicate (u24/to_string (Bits/to_u24 path1)))
-  let arg = (Net/fold f idx1)
+  let arg = (Show/fold f idx1)
   match arg {
     FoldArg/Node: (N/Show arg.node path2)
     FoldArg/Data: (arg.var, idx2)
   }
+
+unchecked Show/fold: (Var -> None) -> String -> (FoldArg String)
+(Show/fold var_fun data) =
+  let * = (var_fun (Var/Fold (Fold/Show data λ$arg(*))))
+  $arg
 
 Print: P -> (P, String)
 (Print x) = (P/Show x Bits/E)

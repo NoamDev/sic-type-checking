@@ -1,6 +1,7 @@
 from net import *
 from utils import *
 
+N/EqualFoldArgs: (FoldArg u24) -> (FoldArg u24) -> Bits -> (N, N, u24)
 (N/EqualFoldArgs (FoldArg/Node a) (FoldArg/Node b) path) =
   (N/Equal a b path)
 
@@ -18,16 +19,16 @@ N/Equal: N -> N -> Bits -> (N, N, u24)
 (N/Equal a N/Error path) = (a, N/Error, 0)
 
 (N/Equal (N/Var f0) (N/Var f1) path) =
-let (path1, path2) = (Bits/duplicate path)
+  let (path1, path2) = (Bits/duplicate path)
   let (idx1, idx2) = (u24/duplicate (Bits/to_u24 path1))
-  let arg0 = (Net/fold f0 idx1)
-  let arg1 = (Net/fold f1 idx2)
+  let arg0 = (Equal/fold f0 idx1)
+  let arg1 = (Equal/fold f1 idx2)
   (N/EqualFoldArgs arg0 arg1 path2)
 
 (N/Equal (N/Var f) b path) =
   let (path1, path2) = (Bits/duplicate path)
   let idx = (Bits/to_u24 path1)
-  let arg = (Net/fold f idx)
+  let arg = (Equal/fold f idx)
   (
     match arg {
       FoldArg/Node: λb (N/Equal arg.node b path2)
@@ -39,7 +40,7 @@ let (path1, path2) = (Bits/duplicate path)
 (N/Equal a (N/Var f) path) =
   let (path1, path2) = (Bits/duplicate path)
   let idx = (Bits/to_u24 path1)
-  let arg = (Net/fold f idx)
+  let arg = (Equal/fold f idx)
   (
     match arg {
       FoldArg/Node: λa (N/Equal a arg.node path2)
@@ -75,7 +76,7 @@ let (path1, path2) = (Bits/duplicate path)
 P/Equal: P -> P -> Bits -> (P, P, u24)
 (P/Equal (P/Var (Var/Node a)) b path) = (P/Equal a b path)
 (P/Equal a (P/Var (Var/Node b)) path) = (P/Equal a b path)
-(P/Equal (P/Var (Var/Fold data0 f0)) (P/Var (Var/Fold data1 f1)) path) =
+(P/Equal (P/Var (Var/Fold (Fold/Equal data0 f0))) (P/Var (Var/Fold (Fold/Equal data1 f1))) path) =
   let (w0p, w0n) = Wire
   let (w1p, w1n) = Wire
   let (data0_0, data0_1) = (u24/duplicate data0)
@@ -85,32 +86,41 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
   let * = (f1 (FoldArg/Data data0_1 w1n))
   (w0p, w1p, eql)
 
-(P/Equal (P/Var (Var/Fold data f)) (P/Sup b0 b1) path) =
-  let (a0, a1) = (DUP (P/Var (Var/Fold data f)))
+(P/Equal (P/Var (Var/Fold (Fold/Equal data f))) (P/Sup b0 b1) path) =
+  let (a0, a1) = (DUP (P/Var (Var/Fold (Fold/Equal data f))))
   (P/Equal (P/Sup a0 a1) (P/Sup b0 b1) path)
 
-(P/Equal (P/Sup a0 a1) (P/Var (Var/Fold data f)) path) =
-  let (b0, b1) = (DUP (P/Var (Var/Fold data f)))
+(P/Equal (P/Sup a0 a1) (P/Var (Var/Fold (Fold/Equal data f))) path) =
+  let (b0, b1) = (DUP (P/Var (Var/Fold (Fold/Equal data f))))
   (P/Equal (P/Sup a0 a1) (P/Sup b0 b1) path)
 
-(P/Equal (P/Var (Var/Fold data f)) (P/Lam var1 bod1) path) =
+(P/Equal (P/Var (Var/Fold (Fold/Equal data f))) (P/Lam var1 bod1) path) =
   let (var0p, var0n) = Wire
-  let bod0 = (APP (P/Var (Var/Fold data f)) var0p)
+  let bod0 = (APP (P/Var (Var/Fold (Fold/Equal data f))) var0p)
   (P/Equal (P/Lam var0n bod0) (P/Lam var1 bod1) path)
 
-(P/Equal (P/Lam var0 bod0) (P/Var (Var/Fold data f)) path) =
+(P/Equal (P/Lam var0 bod0) (P/Var (Var/Fold (Fold/Equal data f))) path) =
   let (var1p, var1n) = Wire
-  let bod1 = (APP (P/Var (Var/Fold data f)) var1p)
+  let bod1 = (APP (P/Var (Var/Fold (Fold/Equal data f))) var1p)
   (P/Equal (P/Lam var0 bod0) (P/Lam var1n bod1) path)
 
-(P/Equal (P/Var (Var/Fold data f)) b path) =
+(P/Equal (P/Var (Var/Fold (Fold/Equal data f))) b path) =
   let (wp, wn) = Wire
   let * = (f (FoldArg/Data 0 wn))
   (wp, b, 0)
-(P/Equal a (P/Var (Var/Fold data f)) path) =
+(P/Equal a (P/Var (Var/Fold (Fold/Equal data f))) path) =
   let (wp, wn) = Wire
   let * = (f (FoldArg/Data 0 wn))
   (a, wp, 0)
+
+(P/Equal (P/Var (Var/Fold (Fold/Show data f))) b path) =
+  let * = (f (FoldArg/Node N/Error))
+  (P/Error, b, 0)
+
+(P/Equal a (P/Var (Var/Fold (Fold/Show data f))) path) =
+  let * = (f (FoldArg/Node N/Error))
+  (a, P/Error, 0)
+
 
 (P/Equal P/Error b path) = (P/Error,b, 0)
 (P/Equal a P/Error path) = (a, P/Error, 0)
@@ -155,3 +165,8 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
   ((P/Ann value0 type0 return_type0 ann_path0), (P/Ann value1 type1 return_type1 ann_path1), eql)
 (P/Equal (P/Ann value0 type0 return_type0 ann_path) b path) =
   ((P/Ann value0 type0 return_type0 ann_path), b, 0)
+
+unchecked Equal/fold: (Var -> None) -> u24 -> (FoldArg u24)
+(Equal/fold var_fun data) =
+  let * = (var_fun (Var/Fold (Fold/Equal data λ$arg(*))))
+  $arg
