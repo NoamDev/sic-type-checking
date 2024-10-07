@@ -1,5 +1,6 @@
 from net import *
 from equal import *
+from affine import *
 
 Check: P -> P -> Bits -> (P, P, u24)
 (Check P/Era P/None path) = (P/Era, P/None, 1)
