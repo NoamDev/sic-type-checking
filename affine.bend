@@ -39,6 +39,23 @@ P/Affine: P -> Bits -> (P, u24)
 (P/Affine (P/Aff type) path) =
   let (type, type_aff) = (P/Affine type path)
   ((P/Aff type), type_aff)
+(P/Affine (P/Forall from to) path) =
+  let (opath, ipath) = (Bits/split path)
+  let (oopath, iopath) = (Bits/split opath)
+  let (oipath, iipath) = (Bits/split ipath)
+  let (from, from_aff) = (P/Affine from oopath)
+  let (xp, xn) = Wire
+  let (pre_var, pre_var_aff) = (N/Affine xn oipath)
+  let (post_var, to_type) = (to xp)
+  let (post_var, post_var_aff) = (P/Affine post_var iopath)
+  let (to_type, to_type_aff) = (P/Affine to_type iipath)
+  (
+    (P/Forall from λx
+      let * = (Interact x pre_var)
+      (post_var, to_type)
+    ),
+    (& (& from_aff pre_var_aff) (& post_var_aff to_type_aff))
+  )
 
 N/Affine: N -> Bits -> (N, u24)
 (N/Affine N/Error path) = (N/Error, 0)

@@ -72,6 +72,38 @@ P/Show: P -> Bits -> (P, String)
     ")"
   ])
   ((P/Aff type), str)
+(P/Show (P/Forall from to) path) =
+  let (opath, ipath) = (Bits/split path) 
+  let (oopath, iopath) = (Bits/split opath)
+  let (oipath, iipath) = (Bits/split ipath)
+  let (from, from_str) = (P/Show from oopath)
+  let (xp, xn) = Wire
+  let (pre_var, pre_var_str) = (N/Show xn iopath)
+  let (post_var, to_type) = (to xp)
+  let (post_var, post_var_str) = (P/Show post_var oipath)
+  let (to_type, to_type_str) = (P/Show to_type iipath)
+  let str = (List/join [
+    "(∀"
+    pre_var_str
+    ":"
+    from_str
+    " "
+    "("
+    post_var_str
+    ","
+    to_type_str
+    ")"
+    ")"
+  ])
+
+  (
+    (P/Forall from λx
+      let * = (Interact x pre_var)
+      (post_var, to_type)
+    ),
+    str
+  )
+  
 
 N/Show: N -> Bits -> (N, String)
 (N/Show (N/Era) path) = (N/Era, "*")

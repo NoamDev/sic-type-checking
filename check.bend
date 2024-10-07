@@ -54,6 +54,7 @@ IsAff: P -> (P, u24)
 
 RefinementOf: P -> P -> Bits -> (P, P, u24)
 (RefinementOf a b path) = (RefinementOfInternal (NormalAff a) (NormalAff b) path)
+
 RefinementOfInternal: P -> P -> Bits -> (P, P, u24)
 (RefinementOfInternal (P/Aff a) (P/Aff b) path) = (P/Equal (P/Aff a) (P/Aff b) path)
 (RefinementOfInternal (P/Aff a) b path) =

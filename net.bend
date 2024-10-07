@@ -12,6 +12,7 @@ type P:
   Arrow {from: P, to: P}
   Aff {type: P}
   Error
+  Forall {from: P, to: P -> (P, P)}
 
 type N:
   Era
@@ -95,9 +96,32 @@ Duplicate: P -> N -> N -> None
   let * = (Interact (P/Aff type0) fst)
   let * = (Interact (P/Aff type1) snd)
   *
+(Duplicate (P/Forall from to) fst snd) =
+  let (from0, from1) = (DUP from)
+  let (xp, xn) = Wire
+  let (x0p, x0n) = Wire
+  let (x1p, x1n) = Wire
+  let (var, type) = (to (P/Sup x0p x1p))
+  let (var0, var1) = (DUP var)
+  let (type0, type1) = (DUP type)
+  let * = (Interact
+            (P/Forall from0 λx0
+              let * = (Interact x0 x0n) 
+              (var0, type0)
+            )
+            fst
+          )
+  let * = (Interact
+            (P/Forall from0 λx1
+              let * = (Interact x1 x1n) 
+              (var1, type1)
+            )
+            snd
+          )
+  *
 (Duplicate (P/Var v) fst snd) =
   let * = (Interact (P/Var v) (N/Dup fst snd))
-  *
+  *  
 
 Apply: P -> P -> N -> None
 (Apply P/Era arg res) =
@@ -165,6 +189,15 @@ Apply: P -> P -> N -> None
   let * = (Error arg)
   let * = (Interact P/Error res)
   *
+(Apply (P/Forall from to) arg res) =
+  let * = (Error arg)
+  let * = (Interact P/Error res)
+  let * = (Error from)
+  let (value, type) = (to N/Error)
+  let * = (Error value)
+  let * = (Error type)
+  *
+(Apply a arg res) = *
 
 Erase: P -> None
 (Erase P/Era) = *
@@ -193,6 +226,13 @@ Erase: P -> None
 (Erase (P/Aff type)) =
   let * = (Erase type)
   *
+(Erase (P/Forall from to)) =
+  let * = (Erase from)
+  let (var, type) = (to P/Era)
+  let * = (Erase var)
+  let * = (Erase type)
+  *
+
 Error: P -> None
 (Error P/Era) = *
 (Error P/None) = *
@@ -218,6 +258,12 @@ Error: P -> None
   *
 (Error (P/Var v)) =
   let * = (Interact (P/Var v) N/Error)
+  *
+(Error (P/Forall from to)) =
+  let * = (Error from)
+  let (var, type) = (to P/Error)
+  let * = (Error var)
+  let * = (Error type)
   *
 
 (Fold (Fold/Show data f) b) =
