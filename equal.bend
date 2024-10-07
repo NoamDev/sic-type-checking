@@ -18,36 +18,40 @@ N/Equal: N -> N -> Bits -> (N, N, u24)
 (N/Equal a N/Error path) = (a, N/Error, 0)
 
 (N/Equal (N/Var f0) (N/Var f1) path) =
-  let idx = (Bits/to_u24 path)
-  let arg0 = (Net/fold f0 idx)
-  let arg1 = (Net/fold f1 idx)
-  (N/EqualFoldArgs arg0 arg1 path)
+let (path1, path2) = (Bits/duplicate path)
+  let (idx1, idx2) = (u24/duplicate (Bits/to_u24 path1))
+  let arg0 = (Net/fold f0 idx1)
+  let arg1 = (Net/fold f1 idx2)
+  (N/EqualFoldArgs arg0 arg1 path2)
 
 (N/Equal (N/Var f) b path) =
-  let idx = (Bits/to_u24 path)
+  let (path1, path2) = (Bits/duplicate path)
+  let idx = (Bits/to_u24 path1)
   let arg = (Net/fold f idx)
   (
     match arg {
-      FoldArg/Node: λb (N/Equal arg.node b path)
+      FoldArg/Node: λb (N/Equal arg.node b path2)
       FoldArg/Data: λb (arg.var, b, 0)
     }
     b
   )
 
 (N/Equal a (N/Var f) path) =
-  let idx = (Bits/to_u24 path)
+  let (path1, path2) = (Bits/duplicate path)
+  let idx = (Bits/to_u24 path1)
   let arg = (Net/fold f idx)
   (
     match arg {
-      FoldArg/Node: λa (N/Equal a arg.node path)
+      FoldArg/Node: λa (N/Equal a arg.node path2)
       FoldArg/Data: λa (a, arg.var, 0)
     }
     a
   )
 
 (N/Equal (N/Dup a0 a1) (N/Dup b0 b1) path) =
-  let (a0, b0, eql0) = (N/Equal a0 b0 (Bits/O path))
-  let (a1, b1, eql1) = (N/Equal a1 b1 (Bits/I path))
+  let (opath, ipath) = (Bits/split path)
+  let (a0, b0, eql0) = (N/Equal a0 b0 opath)
+  let (a1, b1, eql1) = (N/Equal a1 b1 ipath)
   ((N/Dup a0 a1), (N/Dup b0 b1), (& eql0 eql1))
 
 (N/Equal (N/Dup a0 a1) b path) =
@@ -63,8 +67,9 @@ N/Equal: N -> N -> Bits -> (N, N, u24)
 (N/Equal a N/Era path) = (a, N/Era, 0)
 
 (N/Equal (N/App arg0 res0) (N/App arg1 res1) path) =
-  let (arg0, arg1, eql_arg) = (P/Equal arg0 arg1 (Bits/O path))
-  let (res0, res1, eql_res) = (N/Equal res0 res1 (Bits/I path))
+  let (opath, ipath) = (Bits/split path)
+  let (arg0, arg1, eql_arg) = (P/Equal arg0 arg1 opath)
+  let (res0, res1, eql_res) = (N/Equal res0 res1 ipath)
   ((N/App arg0 res0), (N/App arg1 res1), (& eql_arg eql_res))
 
 P/Equal: P -> P -> Bits -> (P, P, u24)
@@ -73,9 +78,11 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
 (P/Equal (P/Var (Var/Fold data0 f0)) (P/Var (Var/Fold data1 f1)) path) =
   let (w0p, w0n) = Wire
   let (w1p, w1n) = Wire
-  let eql = (== data0 data1)
-  let * = (f0 (FoldArg/Data data1 w0n))
-  let * = (f1 (FoldArg/Data data0 w1n))
+  let (data0_0, data0_1) = (u24/duplicate data0)
+  let (data1_0, data1_1) = (u24/duplicate data1)
+  let eql = (== data0_0 data1_0)
+  let * = (f0 (FoldArg/Data data1_1 w0n))
+  let * = (f1 (FoldArg/Data data0_1 w1n))
   (w0p, w1p, eql)
 
 (P/Equal (P/Var (Var/Fold data f)) (P/Sup b0 b1) path) =
@@ -109,8 +116,9 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
 (P/Equal a P/Error path) = (a, P/Error, 0)
 
 (P/Equal (P/Sup a0 a1) (P/Sup b0 b1) path) =
-  let (a0, b0, eql0) = (P/Equal a0 b0 (Bits/O path))
-  let (a1, b1, eql1) = (P/Equal a1 b1 (Bits/I path))
+  let (opath, ipath) = (Bits/split path)
+  let (a0, b0, eql0) = (P/Equal a0 b0 opath)
+  let (a1, b1, eql1) = (P/Equal a1 b1 ipath)
   ((P/Sup a0 a1), (P/Sup b0 b1), (& eql0 eql1))
 
 (P/Equal (P/Sup a0 a1) b path) =
@@ -127,15 +135,17 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
 (P/Equal P/Era b path) = (P/Era, b, 0)
 
 (P/Equal (P/Lam var0 bod0) (P/Lam var1 bod1) path) =
-  let (var0, var1, eql_var) = (N/Equal var0 var1 (Bits/O path))
-  let (bod0, bod1, eql_bod) = (P/Equal bod0 bod1 (Bits/I path))
+  let (opath, ipath) = (Bits/split path)
+  let (var0, var1, eql_var) = (N/Equal var0 var1 opath)
+  let (bod0, bod1, eql_bod) = (P/Equal bod0 bod1 ipath)
   ((P/Lam var0 bod0), (P/Lam var1 bod1), (& eql_var eql_bod))
 
 (P/Equal (P/Lam var bod) b path) = ((P/Lam var bod), b, 0)
 
 (P/Equal (P/Arrow A0 B0) (P/Arrow A1 B1) path) =
-  let (A0, B0, eql0) = (P/Equal A0 B0 (Bits/O path))
-  let (A1, B1, eql1) = (P/Equal A1 B1 (Bits/I path))
+  let (opath, ipath) = (Bits/split path)
+  let (A0, B0, eql0) = (P/Equal A0 B0 opath)
+  let (A1, B1, eql1) = (P/Equal A1 B1 ipath)
   ((P/Arrow A0 B0), (P/Arrow A1 B1), (& eql0 eql1))
 
 (P/Equal (P/Arrow A B) b path) = ((P/Arrow A B), b, 0)

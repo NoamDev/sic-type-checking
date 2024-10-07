@@ -14,6 +14,15 @@ def Bits/to_u24(value):
 def Bits/split(bits: Bits) -> (Bits, Bits):
   return (Bits/O(bits), Bits/I(bits))
 
+def Bits/duplicate(bits: Bits) -> (Bits, Bits):
+  return (bits, bits)
+
+def String/duplicate(str: String) -> (String, String):
+  return (str, str)
+
+def u24/duplicate(n: u24) -> (u24, u24):
+  return (n, n)
+
 (String/concat (String/Cons head tail) other) = (String/Cons head (String/concat tail other))
 (String/concat String/Nil other) = other
 
