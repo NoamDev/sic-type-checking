@@ -38,4 +38,28 @@ P/Affine: P -> Bits -> (P, u24)
   ((P/Ann value type return_type ann_path), (& value_aff type_aff))
 
 N/Affine: N -> Bits -> (N, u24)
-(N/Affine a path) = (a, 0)
+(N/Affine N/Error path) = (N/Error, 0)
+(N/Affine N/Era path) = (N/Era, 1)
+(N/Affine (N/App arg res) path) =
+  let (path0, path1) = (Bits/duplicate path)
+  let (arg, arg_aff) = (P/Affine arg path0)
+  let (res, res_aff) = (N/Affine res path1)
+  ((N/App arg res), (& arg_aff res_aff))
+(N/Affine (N/Dup a b) path) =
+  let (path0, path1) = (Bits/duplicate path)
+  let (a, a_aff) = (N/Affine a path0)
+  let (b, b_aff) = (N/Affine b path1)
+  ((N/Dup a b), 0)
+(N/Affine (N/Var f) path) =
+  let (path0, path1) = (Bits/duplicate path)
+  let idx = (Bits/to_u24 path0)
+  let arg = (Affine/fold f idx)
+  match arg {
+    FoldArg/Node: (N/Affine arg.node path1)
+    FoldArg/Data: (arg.var, 1)
+  }
+
+unchecked Affine/fold: (Var -> None) -> u24 -> (FoldArg u24)
+(Affine/fold f data) =
+  let *= (f (Var/Fold (Fold/Affine data λ$arg(*))))
+  $arg
