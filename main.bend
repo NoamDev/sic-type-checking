@@ -33,6 +33,11 @@ main =
   # let w1n = (PseudoEqual w1n p1)
   # let (a, b, c) = (P/Equal w0p w1p p2)
   # c
-  let pi = (P/Forall P/None λx (x, P/None))
-  let (pi, str) = (Print pi)
-  str
+  let pi = (P/Forall (P/Aff P/None) λT
+                                      let (T0, T1) = (DUP T)
+                                      (P/Era, (P/Arrow T0 T1)))
+  let f = (LAM λx (LAM λx x))
+  let (f, pi, chk) = (Check f pi Bits/E)
+  chk
+  # let (pi, str) = (Print pi)
+  # str

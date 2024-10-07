@@ -173,7 +173,7 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
 (P/Equal (P/Aff type0) b path) =
   ((P/Aff type0), b, 0)
 
-(P/Equal (P/Forall from0 to0) (P/Forall from1 to1) path) =
+(P/Equal (P/Forall from0 to_func0) (P/Forall from1 to_func1) path) =
   let (opath, ipath) = (Bits/split path)
   let (oopath, iopath) = (Bits/split opath)
   let (oipath, iipath) = (Bits/split ipath)
@@ -181,8 +181,8 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
   let (x0p, x0n) = Wire
   let (x1p, x1n) = Wire
   let (pre_var0, pre_var1, pre_var_eql) = (N/Equal x0n x1n iopath)
-  let (post_var0, to_type0) = (to0 x0p)
-  let (post_var1, to_type1) = (to1 x1p)
+  let (post_var0, to_type0) = (to_func0 x0p)
+  let (post_var1, to_type1) = (to_func1 x1p)
   let (post_var0, post_var1, post_var_eql) = (P/Equal post_var0 post_var1 oipath)
   let (to_type0, to_type1, to_type_eql) = (P/Equal to_type0 to_type1 iipath)
   (
@@ -196,8 +196,8 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
     ),
     (& (& from_eql pre_var_eql) (& post_var_eql to_type_eql))
   ) 
-(P/Equal (P/Forall from to) b path) =
-  ((P/Forall from to), b, 0)
+(P/Equal (P/Forall from to_func) b path) =
+  ((P/Forall from to_func), b, 0)
 
 unchecked Equal/fold: (Var -> None) -> u24 -> (FoldArg u24)
 (Equal/fold var_fun data) =

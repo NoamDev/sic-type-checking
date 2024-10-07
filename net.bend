@@ -96,12 +96,12 @@ Duplicate: P -> N -> N -> None
   let * = (Interact (P/Aff type0) fst)
   let * = (Interact (P/Aff type1) snd)
   *
-(Duplicate (P/Forall from to) fst snd) =
+(Duplicate (P/Forall from to_func) fst snd) =
   let (from0, from1) = (DUP from)
   let (xp, xn) = Wire
   let (x0p, x0n) = Wire
   let (x1p, x1n) = Wire
-  let (var, type) = (to (P/Sup x0p x1p))
+  let (var, type) = (to_func (P/Sup x0p x1p))
   let (var0, var1) = (DUP var)
   let (type0, type1) = (DUP type)
   let * = (Interact
@@ -189,11 +189,11 @@ Apply: P -> P -> N -> None
   let * = (Error arg)
   let * = (Interact P/Error res)
   *
-(Apply (P/Forall from to) arg res) =
+(Apply (P/Forall from to_func) arg res) =
   let * = (Error arg)
   let * = (Interact P/Error res)
   let * = (Error from)
-  let (value, type) = (to N/Error)
+  let (value, type) = (to_func N/Error)
   let * = (Error value)
   let * = (Error type)
   *
@@ -226,9 +226,9 @@ Erase: P -> None
 (Erase (P/Aff type)) =
   let * = (Erase type)
   *
-(Erase (P/Forall from to)) =
+(Erase (P/Forall from to_func)) =
   let * = (Erase from)
-  let (var, type) = (to P/Era)
+  let (var, type) = (to_func P/Era)
   let * = (Erase var)
   let * = (Erase type)
   *
@@ -259,9 +259,9 @@ Error: P -> None
 (Error (P/Var v)) =
   let * = (Interact (P/Var v) N/Error)
   *
-(Error (P/Forall from to)) =
+(Error (P/Forall from to_func)) =
   let * = (Error from)
-  let (var, type) = (to P/Error)
+  let (var, type) = (to_func P/Error)
   let * = (Error var)
   let * = (Error type)
   *

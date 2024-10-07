@@ -13,6 +13,17 @@ Check: P -> P -> Bits -> (P, P, u24)
   let res = (APP (P/Lam var bod) (P/Ann xp A A_f oopath))
   let (res, B, chk) = (Check res B ipath)
   ((P/Lam (PseudoEqual xn iopath is_aff_type) res), (P/Arrow A_ret B), chk)
+(Check (P/Lam var bod) (P/Forall from to_func) path) =
+  let (from_ret, from_f) = PChannel
+  let (xp, xn) = Wire
+  let (opath, ipath) = (Bits/split path)
+  let (oopath, iopath) = (Bits/split opath)
+  let (from, is_aff_type) = (IsAff from)
+  let (post_var, to_type) = (to_func (P/Ann xp from from_f oopath))
+  let res = (APP (P/Lam var bod) post_var)
+  let (res, to_type, chk) = (Check res to_type ipath)
+  ((P/Lam (PseudoEqual xn iopath is_aff_type) res), (P/Forall from_ret λx (x, to_type)), chk)
+
 (Check (P/Ann value type1 return_type1 path1) type2 path2) =
   let (type1, type2, eql) = (RefinementOf type1 type2 path2)
   let * = (return_type1 type1)
