@@ -33,8 +33,8 @@ P/Show: P -> Bits -> (P, String)
   let * = (f (FoldArg/Data "" wn))
   (wp, data)
 
-(P/Show (P/Var (Var/Fold (Fold/Equal data f))) path) =
-  let * = (f (FoldArg/Node N/Error))
+(P/Show (P/Var (Var/Fold other)) path) =
+  let * = (Fold other N/Error)
   (P/Error, "Error")
 
 (P/Show P/None path) = (P/None, "None")

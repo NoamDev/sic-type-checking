@@ -113,12 +113,12 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
   let * = (f (FoldArg/Data 0 wn))
   (a, wp, 0)
 
-(P/Equal (P/Var (Var/Fold (Fold/Show data f))) b path) =
-  let * = (f (FoldArg/Node N/Error))
+(P/Equal (P/Var (Var/Fold other)) b path) =
+  let * = (Fold other N/Error)
   (P/Error, b, 0)
 
-(P/Equal a (P/Var (Var/Fold (Fold/Show data f))) path) =
-  let * = (f (FoldArg/Node N/Error))
+(P/Equal a (P/Var (Var/Fold other)) path) =
+  let * = (Fold other N/Error)
   (a, P/Error, 0)
 
 

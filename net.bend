@@ -26,6 +26,7 @@ type Var:
 type Fold:
   Show {data: String, f: FoldArg(String) -> None }
   Equal {data: u24, f: FoldArg(u24) -> None}
+  Affine {data: u24, f: FoldArg(u24) -> None}
 
 type FoldArg(T):
   Node {node: N}
@@ -207,5 +208,9 @@ Error: P -> None
   *
 
 (Fold (Fold/Equal data f) b) =
+  let * = (f (FoldArg/Node b))
+  *
+
+(Fold (Fold/Affine data f) b) =
   let * = (f (FoldArg/Node b))
   *
