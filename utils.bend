@@ -11,6 +11,12 @@ def Bits/to_u24(value):
     case Bits/E:
       return 1
 
+Bits/Equal: Bits -> Bits -> u24
+(Bits/Equal Bits/E Bits/E) = 1
+(Bits/Equal (Bits/O bits0) (Bits/O bits1)) = (Bits/Equal bits0 bits1)
+(Bits/Equal (Bits/I bits0) (Bits/I bits1)) = (Bits/Equal bits0 bits1)
+(Bits/Equal bits0 bits1) = 0
+
 def Bits/split(bits: Bits) -> (Bits, Bits):
   return (Bits/O(bits), Bits/I(bits))
 

@@ -103,7 +103,7 @@ P/Show: P -> Bits -> (P, String)
     ),
     str
   )
-(P/Show (P/Sym wrapped id history) path) =
+(P/Show (P/Sym wrapped id history aff) path) =
   (P/Show wrapped path)
 
 N/Show: N -> Bits -> (N, String)
@@ -141,7 +141,7 @@ N/Show: N -> Bits -> (N, String)
     FoldArg/Node: (N/Show arg.node path2)
     FoldArg/Data: (arg.var, idx2)
   }
-(N/Show (N/Sym wrapped id history) path) =
+(N/Show (N/Sym wrapped id history aff) path) =
   (N/Show wrapped path)
 
 unchecked Show/fold: (Var -> None) -> String -> (FoldArg String)
