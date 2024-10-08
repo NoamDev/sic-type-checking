@@ -33,10 +33,10 @@ P/Affine: P -> Bits -> (P, u24)
   let (A, A_aff) = (P/Affine A path0)
   let (B, B_aff) = (P/Affine B path1)
   ((P/Arrow A B), (& A_aff B_aff))
-(P/Affine (P/Ann value type ann_path) path) =
+(P/Affine (P/Ann value type ann_path ann_chk) path) =
   let (value, value_aff) = (P/Affine value path)
   let (type, type_aff) = (P/Affine value path)
-  ((P/Ann value type ann_path), (& value_aff type_aff))
+  ((P/Ann value type ann_path ann_chk), (& value_aff type_aff))
 (P/Affine (P/Aff type) path) =
   let (type, type_aff) = (P/Affine type path)
   ((P/Aff type), type_aff)
@@ -59,6 +59,7 @@ P/Affine: P -> Bits -> (P, u24)
   )
 (P/Affine (P/Sym wrapped id history aff) path) =
   (P/Affine wrapped path)
+(P/Affine (P/Hole f) path) = ((P/Hole f), 0)
 
 N/Affine: N -> Bits -> (N, u24)
 (N/Affine N/Error path) = (N/Error, 0)

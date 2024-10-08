@@ -7,7 +7,7 @@ type P:
   Lam {var: N, bod: P}
   Sup {fst: P, snd: P}
   Var {v: Var}
-  Ann {value: P, type: P, path: Bits}
+  Ann {value: P, type: P, path: Bits, chk: u24}
   None
   Arrow {from: P, to: P}
   Aff {type: P}
@@ -15,6 +15,7 @@ type P:
   Forall {from: P, to_fun: P -> (P, P)}
   Sym {wrapped: P, id: Bits, history: P/History, aff: u24}
   Type
+  Hole {f: P -> None}
 
 type N:
   Era
@@ -143,12 +144,12 @@ Duplicate: P -> N -> N -> None
   let * = (Interact (P/Lam var0n bod0) f0)
   let * = (Interact (P/Lam var1n bod1) f1)
   *
-(Duplicate (P/Ann value type path) fst snd) =
+(Duplicate (P/Ann value type path chk) fst snd) =
   let (value0, value1) = (DUP value)
   let (type0, type1) = (DUP type)
   let (opath, ipath) = (Bits/split path)
-  let * = (Interact (P/Ann value0 type0 opath) fst)
-  let * = (Interact (P/Ann value1 type1 ipath) snd)
+  let * = (Interact (P/Ann value0 type0 opath chk) fst)
+  let * = (Interact (P/Ann value1 type1 ipath chk) snd)
   *
 (Duplicate (P/Arrow A B) fst snd) =
   let (A0, A1) = (DUP A)
@@ -203,6 +204,11 @@ Duplicate: P -> N -> N -> None
   let * = (Interact P/Type fst)
   let * = (Interact P/Type snd)
   *
+(Duplicate (P/Hole f) fst snd) =
+  let * = (f P/Error)
+  let * = (Interact P/Error fst)
+  let * = (Interact P/Error snd)
+  *
 
 Apply: P -> P -> N -> None
 (Apply P/Era arg res) =
@@ -233,28 +239,52 @@ Apply: P -> P -> N -> None
   let * = (Interact (P/Var v) (N/App arg res))
   *
 
-(Apply (P/Ann value (P/Arrow A B) path) arg res) =
+(Apply (P/Ann value (P/Arrow A B) path ann_chk) arg res) =
   let (opath, ipath) = (Bits/split path)
   let (arg, chk) = (Check arg A opath)
-  (
-    if chk {
-      λvalueλBλargλres
-      let * = (Interact (P/Ann (APP value arg) B ipath) res)
-      *
-    } else {
-      λvalueλBλargλres
-      let * = (Interact value N/Error)
-      let * = (Interact B N/Error)
-      let * = (Interact arg N/Error)
-      let * = (Interact P/Error res)
-      *
-    }
-    value B arg res
-  )
-(Apply (P/Ann value (P/Aff T) path) arg res) = (Apply (P/Ann value T path) arg res)
-(Apply (P/Ann value (P/Var (Var/Node T)) path) arg res) = (Apply (P/Ann value T path) arg res)
+  let * = (Interact (P/Ann (APP value arg) B ipath (& ann_chk chk)) res)
+  *
+  # (
+  #   if chk {
+  #     λvalueλBλargλres
+  #     let * = (Interact (P/Ann (APP value arg) B ipath) res)
+  #     *
+  #   } else {
+  #     λvalueλBλargλres
+  #     let * = (Interact value N/Error)
+  #     let * = (Interact B N/Error)
+  #     let * = (Interact arg N/Error)
+  #     let * = (Interact P/Error res)
+  #     *
+  #   }
+  #   value B arg res
+  # )
+(Apply (P/Ann value (P/Forall from to_fun) path ann_chk) arg res) =
+  let (opath, ipath) = (Bits/split path)
+  let (arg, chk) = (Check arg from opath)
+  let (post_var, to_type) = (to_fun arg)
+  let * = (Interact (P/Ann (APP value post_var) to_type ipath (& chk ann_chk)) res)
+  *
+  # (
+  #   if chk {
+  #     λvalueλto_funλargλres
+  #     *
+  #   } else {
+  #     λvalueλto_funλargλres
+  #     let (post_var, to_type) = (to_fun P/Error)
+  #     let * = (Interact value N/Error)
+  #     let * = (Interact to_type N/Error)
+  #     let * = (Interact post_var N/Error)
+  #     let * = (Interact arg N/Error)
+  #     let * = (Interact P/Error res)
+  #     *
+  #   }
+  #   value to_fun arg res
+  # )
+(Apply (P/Ann value (P/Aff T) path chk) arg res) = (Apply (P/Ann value T path chk) arg res)
+(Apply (P/Ann value (P/Var (Var/Node T)) path chk) arg res) = (Apply (P/Ann value T path chk) arg res)
 
-(Apply (P/Ann value type path) arg res) =
+(Apply (P/Ann value type path chk) arg res) =
   let * = (Interact value N/Error)
   let * = (Interact type N/Error)
   let * = (Interact arg N/Error)
@@ -290,6 +320,11 @@ Apply: P -> P -> N -> None
   let * = (Error arg)
   let * = (Interact P/Error res)
   *
+(Apply (P/Hole f) arg res) =
+  let * = (Error arg)
+  let * = (Interact P/Error res)
+  let * = (f P/Error)
+  *
 
 Erase: P -> None
 (Erase P/Era) = *
@@ -307,7 +342,7 @@ Erase: P -> None
 (Erase (P/Var v)) =
   let * = (Interact (P/Var v) N/Era)
   *
-(Erase (P/Ann value type path)) =
+(Erase (P/Ann value type path chk)) =
   let * = (Erase value)
   let * = (Erase type)
   *
@@ -326,6 +361,9 @@ Erase: P -> None
   let * = (Erase type)
   *
 (Erase (P/Sym wrapped id history aff)) = (Erase wrapped)
+(Erase (P/Hole f)) =
+  let * = (f P/Error)
+  *
 
 Error: P -> None
 (Error P/Era) = *
@@ -336,7 +374,7 @@ Error: P -> None
   let * = (Error fst)
   let * = (Error snd)
   *
-(Error (P/Ann value type path)) =
+(Error (P/Ann value type path chk)) =
   let * = (Error value)
   let * = (Erase type)
   *
@@ -361,6 +399,7 @@ Error: P -> None
   let * = (Error type)
   *
 (Error (P/Sym wrapped id history aff)) = (Error wrapped)
+(Error (P/Hole f)) = (f P/Error)
 
 (Fold (Fold/Show data f) b) =
   let * = (f (FoldArg/Node b))
@@ -401,10 +440,10 @@ Sym: P -> N -> Bits -> N/History -> u24 -> None
   *
 (Sym (P/Var v) wrapped id history aff) =
   (Interact (P/Var v) (N/Sym wrapped id history aff))
-(Sym (P/Ann value type ann_path) wrapped id history aff) =
+(Sym (P/Ann value type ann_path ann_chk) wrapped id history aff) =
   let (valp, valn) = Wire
   let (typp, typn) = Wire
-  let * = (Interact (P/Ann valp typp ann_path) wrapped)
+  let * = (Interact (P/Ann valp typp ann_path ann_chk) wrapped)
   let * = (Interact value (N/Sym valn id (N/History/AnnVal history) aff))
   let * = (Interact type (N/Sym typn id (N/History/AnnTyp history) aff))
   *
@@ -442,5 +481,8 @@ Sym: P -> N -> Bits -> N/History -> u24 -> None
 
 (Sym (P/Sym wrapped0 id0 history0 aff0) wrapped1 id1 history1 aff1) =
   (Interact wrapped0 wrapped1)
-Sym (P/Type) wrapped id history aff =
+(Sym (P/Type) wrapped id history aff) =
   (Interact P/Type wrapped)
+(Sym (P/Hole f)  wrapped id history aff) =
+  let * = (Interact (P/Hole f) wrapped)
+  *

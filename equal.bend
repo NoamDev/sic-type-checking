@@ -169,11 +169,11 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
 
 (P/Equal (P/Arrow A B) b path) = ((P/Arrow A B), b, 0)
 
-(P/Equal (P/Ann value0 type0 ann_path0) (P/Ann value1 type1 ann_path1) path) =
+(P/Equal (P/Ann value0 type0 ann_path0 ann_chk0) (P/Ann value1 type1 ann_path1 ann_chk1) path) =
   let (value0, value1, eql) = (P/Equal value0 value1 path)
-  ((P/Ann value0 type0 ann_path0), (P/Ann value1 type1 ann_path1), eql)
-(P/Equal (P/Ann value0 type0 ann_path) b path) =
-  ((P/Ann value0 type0 ann_path), b, 0)
+  ((P/Ann value0 type0 ann_path0 ann_chk0), (P/Ann value1 type1 ann_path1 ann_chk1), eql)
+(P/Equal (P/Ann value0 type0 ann_path ann_chk) b path) =
+  ((P/Ann value0 type0 ann_path ann_chk), b, 0)
 
 (P/Equal (P/Aff type0) (P/Aff type1) path) =
   let (type0, type1, eql) = (P/Equal type0 type1 path)
@@ -213,6 +213,8 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
   ((P/Sym wrapped0 id0 history0 aff0), (P/Sym wrapped1 id1 history1 aff1), (& id_eql history_eql))
 (P/Equal (P/Sym wrapped0 id0 history0 aff0) b path) =
   ((P/Sym wrapped0 id0 history0 aff0), b, 0)
+(P/Equal (P/Hole f) b path) = ((P/Hole f), b, 0)
+(P/Equal a (P/Hole f) path) = (a, (P/Hole f), 0)
 
 unchecked Equal/fold: (Var -> None) -> u24 -> (FoldArg u24)
 (Equal/fold var_fun data) =

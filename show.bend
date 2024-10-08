@@ -40,7 +40,7 @@ P/Show: P -> Bits -> (P, String)
 (P/Show P/None path) = (P/None, "None")
 (P/Show (P/Type) path) = (P/Type, "Type")
 (P/Show P/Error path) = (P/Error, "Error")
-(P/Show (P/Ann value type ann_path) path) =
+(P/Show (P/Ann value type ann_path ann_chk) path) =
   let (opath, ipath) = (Bits/split path)
   let (value, value_str) = (P/Show value opath)
   let (type, type_str) = (P/Show type ipath)
@@ -51,7 +51,7 @@ P/Show: P -> Bits -> (P, String)
     type_str
     "}"
   ])
-  ((P/Ann value type ann_path), str)
+  ((P/Ann value type ann_path ann_chk), str)
 (P/Show (P/Arrow A B) path) = 
   let (opath, ipath) = (Bits/split path)
   let (A, A_str) = (P/Show A opath)
@@ -106,6 +106,7 @@ P/Show: P -> Bits -> (P, String)
   )
 (P/Show (P/Sym wrapped id history aff) path) =
   ((P/Sym wrapped id history aff), "$")
+(P/Show (P/Hole f) path) = ((P/Hole f), "_")
 
 N/Show: N -> Bits -> (N, String)
 (N/Show (N/Era) path) = (N/Era, "*")

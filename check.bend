@@ -9,7 +9,7 @@ Check: P -> P -> Bits -> (P, u24)
   let (opath, ipath) = (Bits/split path)
   let (oopath, iopath) = (Bits/split opath)
   let (A, is_aff_type) = (IsAff A)
-  let res = (APP (P/Lam var bod) (P/Ann (P/Sym xp iopath P/History/E is_aff_type) A oopath))
+  let res = (APP (P/Lam var bod) (P/Ann (P/Sym xp iopath P/History/E is_aff_type) A oopath 1))
   let (res, chk) = (Check res B ipath)
   ((P/Lam xn (P/CleanSymbols res path)), chk)
 (Check (P/Lam var bod) (P/Forall from to_func) path) =
@@ -17,19 +17,25 @@ Check: P -> P -> Bits -> (P, u24)
   let (opath, ipath) = (Bits/split path)
   let (oopath, iopath) = (Bits/split opath)
   let (from, is_aff_type) = (IsAff from)
-  let (post_var, to_type) = (to_func (P/Ann (P/Sym xp iopath P/History/E is_aff_type) from oopath))
+  let (post_var, to_type) = (to_func (P/Ann (P/Sym xp iopath P/History/E is_aff_type) from oopath 1))
   let res = (APP (P/Lam var bod) post_var)
   let (res, chk) = (Check res to_type ipath)
   ((P/Lam xn (P/CleanSymbols res path)), chk)
 
-(Check (P/Ann value type1 path1) type2 path2) =
+(Check (P/Ann value type1 path1 ann_chk) type2 path2) =
   let (type1, type2, eql) = (RefinementOf type1 type2 path2)
   let * = (Erase type1)
   let * = (Erase type2)
-  (value, eql)
+  (value, (& eql ann_chk))
 (Check P/None P/Type path) = (P/None, 1)
 (Check (P/Var (Var/Node value)) type path) = (Check value type path)
 (Check value (P/Var (Var/Node type)) path) = (Check value type path)
+(Check value (P/Ann type meta_type ann_path ann_chk) path) =
+  let (value, chk) = (Check value type path)
+  (value, (& chk ann_chk))
+(Check (P/Hole f) type path) =
+  let * = (f type)
+  (P/Era, 1)
 (Check a b path) = 
   let * = (Erase b)
   (a, 0)
@@ -76,11 +82,12 @@ P/CleanSymbols: P -> Bits -> P
     (P/CleanSymbols fst path)
     (P/CleanSymbols snd path)
   )
-(P/CleanSymbols (P/Ann value typ ann_path) path) =
+(P/CleanSymbols (P/Ann value typ ann_path ann_chk) path) =
   (P/Ann
     (P/CleanSymbols value path)
     (P/CleanSymbols typ path)
     ann_path
+    ann_chk
   )
 (P/CleanSymbols P/None path) = P/None
 (P/CleanSymbols P/Type path) = P/Type
@@ -111,6 +118,7 @@ P/CleanSymbols: P -> Bits -> P
     }
     wrapped
   )
+(P/CleanSymbols (P/Hole f) path) = (P/Hole f)
 
 N/CleanSymbols: N -> Bits -> N
 (N/CleanSymbols N/Era path) = N/Era
