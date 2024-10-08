@@ -36,7 +36,7 @@ main =
   let pi = (P/Forall (P/Aff P/None) λT
                                       let (T0, T1) = (DUP T)
                                       (P/Era, (P/Arrow T0 T1)))
-  let f = (LAM λx (LAM λx x))
+  let f = (LAM λx let * = (ERA x) (LAM λx x))
   let (f, pi, chk) = (Check f pi Bits/E)
   chk
   # let (pi, str) = (Print pi)
