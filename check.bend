@@ -11,7 +11,7 @@ Check: P -> P -> Bits -> (P, u24)
   let (A, is_aff_type) = (IsAff A)
   let res = (APP (P/Lam var bod) (P/Ann (P/Sym xp iopath P/History/E is_aff_type) A oopath))
   let (res, chk) = (Check res B ipath)
-  ((P/Lam xn res), chk)
+  ((P/Lam xn (P/CleanSymbols res path)), chk)
 (Check (P/Lam var bod) (P/Forall from to_func) path) =
   let (xp, xn) = Wire
   let (opath, ipath) = (Bits/split path)
@@ -20,7 +20,7 @@ Check: P -> P -> Bits -> (P, u24)
   let (post_var, to_type) = (to_func (P/Ann (P/Sym xp iopath P/History/E is_aff_type) from oopath))
   let res = (APP (P/Lam var bod) post_var)
   let (res, chk) = (Check res to_type ipath)
-  ((P/Lam xn res), chk)
+  ((P/Lam xn (P/CleanSymbols res path)), chk)
 
 (Check (P/Ann value type1 path1) type2 path2) =
   let (type1, type2, eql) = (RefinementOf type1 type2 path2)
@@ -32,32 +32,6 @@ Check: P -> P -> Bits -> (P, u24)
 (Check a b path) = 
   let * = (Erase b)
   (a, 0)
-
-# PseudoEqual: N -> Bits -> u24 -> N
-# (PseudoEqual (N/Var f) path aff) =
-#   let (path0, path1) = (Bits/duplicate path)
-#   let idx = (Bits/to_u24 path0)
-#   let arg = (Equal/fold f idx)
-#   match arg {
-#     FoldArg/Node: (PseudoEqual arg.node path1 aff)
-#     FoldArg/Data: arg.var
-#   }
-# (PseudoEqual N/Era path aff) = N/Era
-# (PseudoEqual N/Error path aff) = N/Error
-# (PseudoEqual (N/App arg res) path aff) = (N/App arg res)
-# (PseudoEqual (N/Dup a b) path aff) =
-#   let (path0, path1) = 
-#   (
-#     if aff {
-#       Bits/duplicate
-#     } else {
-#       Bits/split
-#     }
-#     path
-#   )
-#   let a = (PseudoEqual a path0 aff)
-#   let b = (PseudoEqual b path1 aff)
-#   (N/Dup a b)
 
 IsAff: P -> (P, u24)
 (IsAff (P/Aff a)) = ((P/Aff a), 1)
@@ -79,3 +53,95 @@ NormalAff: P -> P
 (NormalAff (P/Aff (P/Var (Var/Node a)))) = (NormalAff (P/Aff a))
 (NormalAff (P/Aff (P/Aff a))) = (NormalAff (P/Aff (NormalAff a)))
 (NormalAff a) = a
+
+P/CleanSymbols: P -> Bits -> P
+(P/CleanSymbols (P/Var (Var/Node node)) path) = (P/CleanSymbols node path)
+(P/CleanSymbols (P/Var (Var/Fold (Fold/CleanSymbols data f))) path) =
+  let (wp, wn) = Wire
+  let * = (f (FoldArg/Data * wn))
+  wp
+(P/CleanSymbols (P/Var (Var/Fold f)) path) =
+  let * = (Fold f N/Error)
+  P/Error
+(P/CleanSymbols P/Era path) = P/Era
+(P/CleanSymbols P/Error path) = P/Error
+(P/CleanSymbols (P/Lam var bod) path) =
+  (P/Lam
+    (N/CleanSymbols var path)
+    (P/CleanSymbols bod path)
+  )
+(P/CleanSymbols (P/Sup fst snd) path) =
+  (P/Sup
+    (P/CleanSymbols fst path)
+    (P/CleanSymbols snd path)
+  )
+(P/CleanSymbols (P/Ann value typ ann_path) path) =
+  (P/Ann
+    (P/CleanSymbols value path)
+    (P/CleanSymbols typ path)
+    ann_path
+  )
+(P/CleanSymbols P/None path) = P/None
+(P/CleanSymbols (P/Arrow from to) path) =
+  (P/Arrow
+    (P/CleanSymbols from path)
+    (P/CleanSymbols to path)
+  )
+(P/CleanSymbols (P/Aff typ) path) =
+  (P/Aff (P/CleanSymbols typ path))
+(P/CleanSymbols (P/Forall from to_fun) path) =
+  let (xp, xn) = Wire
+  let (post_var, type_to) = (to_fun xp)
+  (P/Forall
+    (P/CleanSymbols from path)
+    λx
+      let * = (Interact x xn)
+      ((P/CleanSymbols post_var path), (P/CleanSymbols type_to path))
+  )
+(P/CleanSymbols (P/Sym wrapped id history aff) path) =
+  (
+    if (Bits/startsWith id path) {
+      λwrapped
+        wrapped
+    } else {
+      λwrapped
+        (P/Sym wrapped id history aff)
+    }
+    wrapped
+  )
+
+N/CleanSymbols: N -> Bits -> N
+(N/CleanSymbols N/Era path) = N/Era
+(N/CleanSymbols (N/App arg res) path) =
+  (N/App
+    (P/CleanSymbols arg path)
+    (N/CleanSymbols res path)
+  )
+(N/CleanSymbols (N/Dup fst snd) path) =
+  (N/Dup
+    (N/CleanSymbols fst path)
+    (N/CleanSymbols snd path)
+  )
+(N/CleanSymbols (N/Var f) path) =
+  let arg = (CleanSymbols/fold f *)
+  match arg {
+    FoldArg/Node: (N/CleanSymbols arg.node path)
+    FoldArg/Data: arg.var
+  }
+(N/CleanSymbols N/Error path) = N/Error
+(N/CleanSymbols (N/Sym wrapped id history aff) path) =
+  (
+    if (Bits/startsWith id path) {
+      λwrapped
+        wrapped
+    } else {
+      λwrapped
+        (N/Sym wrapped id history aff)
+    }
+    wrapped
+  )
+
+unchecked CleanSymbols/fold: (Var -> None) -> None -> (FoldArg None)
+(CleanSymbols/fold var_fun data) =
+  let * = (var_fun (Var/Fold (Fold/CleanSymbols data λ$arg(*))))
+  $arg

@@ -204,7 +204,7 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
 (P/Equal (P/Forall from to_func) b path) =
   ((P/Forall from to_func), b, 0)
 (P/Equal (P/Sym wrapped0 id0 history0 aff0) (P/Sym wrapped1 id1 history1 aff1) path) =
-  let id_eql = (Bits/Equal id0 id1)
+  let id_eql = (Bits/equal id0 id1)
   let history_eql = (P/History/Equal history0 history1)
   (wrapped0, wrapped1, (& id_eql history_eql))
 (P/Equal (P/Sym wrapped0 id0 history0 aff0) b path) =

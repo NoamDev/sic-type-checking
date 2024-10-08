@@ -36,10 +36,22 @@ main =
   let pi = (P/Forall (P/Aff P/None) λT
                                       let (T0, T1) = (DUP T)
                                       (P/Era, (P/Arrow T0 T1)))
+  let arrow = (P/Arrow P/None (P/Arrow P/None P/None))
+  let (xp, xn) = Wire
   let f = (LAM λx let * = (ERA x) (LAM λx x))
+  # let f = (P/CleanSymbols f (Bits/I Bits/E))
+  # let (f, chk) = (Check f (P/Arrow P/None (P/Arrow P/None P/None)) Bits/E)
+  # let (f, str) = (Print f)
+  # (
+  #   # chk,
+  #   # str,
+  #   f
+  # )
+  # f
+  # let (f, str) = (Print f)
+  # (str, chk, f)
   let (f, chk) = (Check f pi Bits/E)
-  let (f, str) = (Print f)
+  let (f, str) = (P/Show f Bits/E)
   (str, chk)
-
   # let (pi, str) = (Print pi)
   # str

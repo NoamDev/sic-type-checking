@@ -104,7 +104,8 @@ P/Show: P -> Bits -> (P, String)
     str
   )
 (P/Show (P/Sym wrapped id history aff) path) =
-  (P/Show wrapped path)
+  let (wrapped, str) = (P/Show wrapped path)
+  (wrapped, "$")
 
 N/Show: N -> Bits -> (N, String)
 (N/Show (N/Era) path) = (N/Era, "*")

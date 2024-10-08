@@ -32,6 +32,7 @@ type Fold:
   Show {data: String, f: FoldArg(String) -> None }
   Equal {data: u24, f: FoldArg(u24) -> None}
   Affine {data: u24, f: FoldArg(u24) -> None}
+  CleanSymbols {data: None, f: FoldArg(None) -> None}
 
 type FoldArg(T):
   Node {node: N}
@@ -359,7 +360,9 @@ Error: P -> None
 (Fold (Fold/Affine data f) b) =
   let * = (f (FoldArg/Node b))
   *
-
+(Fold (Fold/CleanSymbols data f) b) =
+  let * = (f (FoldArg/Node b))
+  *
 Sym: P -> N -> Bits -> N/History -> u24 -> None
 (Sym P/Era wrapped id history aff) = (Interact P/Era wrapped)
 (Sym P/None wrapped id history aff) = (Interact P/None wrapped)
