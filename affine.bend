@@ -56,6 +56,8 @@ P/Affine: P -> Bits -> (P, u24)
     ),
     (& (& from_aff pre_var_aff) (& post_var_aff to_type_aff))
   )
+(P/Affine (P/Sym wrapped id history) path) =
+  (P/Affine wrapped path)
 
 N/Affine: N -> Bits -> (N, u24)
 (N/Affine N/Error path) = (N/Error, 0)
@@ -78,6 +80,8 @@ N/Affine: N -> Bits -> (N, u24)
     FoldArg/Node: (N/Affine arg.node path1)
     FoldArg/Data: (arg.var, 1)
   }
+(N/Affine (N/Sym wrapped id history) path) =
+  (N/Affine wrapped path)
 
 unchecked Affine/fold: (Var -> None) -> u24 -> (FoldArg u24)
 (Affine/fold f data) =

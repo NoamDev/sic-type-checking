@@ -12,7 +12,8 @@ type P:
   Arrow {from: P, to: P}
   Aff {type: P}
   Error
-  Forall {from: P, to: P -> (P, P)}
+  Forall {from: P, to_fun: P -> (P, P)}
+  Sym {wrapped: P, id: Bits, history: P/History}  
 
 type N:
   Era
@@ -20,6 +21,8 @@ type N:
   Dup {fst: N, snd: N}
   Var {f: Var -> None}
   Error
+  Sym {wrapped: N, id: Bits, history: N/History}  
+
 
 type Var:
   Node {node: P}
@@ -37,6 +40,29 @@ type FoldArg(T):
 unchecked Wire: (P, N)
 (Wire) = ((P/Var $a), (N/Var λ$a *))
 
+type P/History:
+  E
+  LamVar {prev: N/History}
+  AppRes {prev: P/History}
+  DupFst {prev: P/History}
+  DupSnd {prev: P/History}
+
+type N/History:
+  E
+  AppArg {prev: P/History}
+  LamBod {prev: N/History}
+  SupFst {prev: N/History}
+  SupSnd {prev: N/History}
+  AnnVal {prev: N/History}
+  AnnTyp {prev: N/History}
+  ArrA   {prev: N/History}
+  ArrB   {prev: N/History}
+  Aff    {prev: N/History}
+  FrlFrm {prev: N/History}
+  FrlTo1 {prev: N/History}
+  FrlTo2 {prev: N/History}
+
+
 Interact: P -> N -> None
 (Interact (P/Var (Var/Node a)) b) = 
   let * = (Interact a b)
@@ -49,6 +75,7 @@ Interact: P -> N -> None
 (Interact a (N/App arg res)) = (Apply a arg res)
 (Interact a N/Era) = (Erase a)
 (Interact a N/Error) = (Error a)
+(Interact a (N/Sym wrapped id history)) = (Sym a wrapped id history)
 
 Duplicate: P -> N -> N -> None
 (Duplicate P/Era fst snd) =
@@ -119,6 +146,13 @@ Duplicate: P -> N -> N -> None
 (Duplicate (P/Var v) fst snd) =
   let * = (Interact (P/Var v) (N/Dup fst snd))
   *  
+(Duplicate (P/Sym wrapped id history) fst snd) =
+  let (fstp, fstn) = Wire
+  let (sndp, sndn) = Wire
+  let * = (Duplicate wrapped fstn sndn)
+  let * = (Interact (P/Sym fstp id (P/History/DupFst history)) fst)
+  let * = (Interact (P/Sym sndp id (P/History/DupFst history)) snd)
+  *
 
 Apply: P -> P -> N -> None
 (Apply P/Era arg res) =
@@ -186,12 +220,19 @@ Apply: P -> P -> N -> None
   let * = (Interact P/Error res)
   *
 (Apply (P/Forall from to_func) arg res) =
-  let * = (Error arg)
+  let * = (Interact arg N/Error)
   let * = (Interact P/Error res)
-  let * = (Error from)
-  let (value, type) = (to_func N/Error)
-  let * = (Error value)
-  let * = (Error type)
+  let * = (Interact from N/Error)
+  let (value, type) = (to_func P/Error)
+  let * = (Interact value N/Error)
+  let * = (Interact type N/Error)
+  *
+(Apply (P/Sym wrapped id history) arg res) =
+  let (argp, argn) = Wire
+  let (resp, resn) = Wire
+  let * = (Apply wrapped argp resn)
+  let * = (Interact arg (N/Sym argn id (N/History/AppArg history)))
+  let * = (Interact (P/Sym resp id (P/History/AppRes history)) res)
   *
 
 Erase: P -> None
@@ -227,6 +268,7 @@ Erase: P -> None
   let * = (Erase var)
   let * = (Erase type)
   *
+(Erase (P/Sym wrapped id history)) = (Erase wrapped)
 
 Error: P -> None
 (Error P/Era) = *
@@ -260,6 +302,7 @@ Error: P -> None
   let * = (Error var)
   let * = (Error type)
   *
+(Error (P/Sym wrapped id history)) = (Error wrapped)
 
 (Fold (Fold/Show data f) b) =
   let * = (f (FoldArg/Node b))
@@ -272,3 +315,66 @@ Error: P -> None
 (Fold (Fold/Affine data f) b) =
   let * = (f (FoldArg/Node b))
   *
+
+Sym: P -> N -> Bits -> N/History -> None
+# (Sym P/Era wrapped id history) = (Interact P/Era wrapped)
+# (Sym P/None wrapped id history) = (Interact P/None wrapped)
+# (Sym P/Error wrapped id history) = (Interact P/Error wrapped)
+# (Sym (P/Lam var bod) wrapped id history) =
+#   let (varp, varn) = Wire
+#   let (bodp, bodn) = Wire
+#   let * = (Interact (P/Lam varn bodp) wrapped)
+#   let * = (Interact (P/Sym varp id (P/History/LamVar history)) var)
+#   let * = (Interact bod (N/Sym bodn id (N/History/LamBod history)))
+#   *
+# (Sym (P/Sup fst snd) wrapped id history) =
+#   let (fstp, fstn) = Wire
+#   let (sndp, sndn) = Wire
+#   let * = (Interact (P/Sup fstp sndp) wrapped)
+#   let * = (Interact fst (N/Sym fstn id (N/History/SupFst history)))
+#   let * = (Interact snd (N/Sym sndn id (N/History/SupSnd history)))
+#   *
+# (Sym (P/Var v) wrapped id history) =
+#   (Interact (P/Var v) (N/Sym wrapped id history))
+# (Sym (P/Ann value type ann_path) wrapped id history) =
+#   let (valp, valn) = Wire
+#   let (typp, typn) = Wire
+#   let * = (Interact (P/Ann valp typp ann_path) wrapped)
+#   let * = (Interact value (N/Sym valn id (N/History/AnnVal history)))
+#   let * = (Interact type (N/Sym typn id (N/History/AnnTyp history)))
+#   *
+# (Sym (P/Arrow A B) wrapped id history) =
+#   let (Ap, An) = Wire
+#   let (Bp, Bn) = Wire
+#   let * = (Interact (P/Arrow Ap Bp) wrapped)
+#   let * = (Interact A (N/Sym An id (N/History/ArrA history)))
+#   let * = (Interact B (N/Sym Bn id (N/History/ArrB history)))
+#   *
+# (Sym (P/Aff type) wrapped id history) =
+#   let (typp, typn) = Wire
+#   let * = (Interact (P/Aff typp) wrapped)
+#   let * = (Interact type (N/Sym typn id (N/History/Aff history)))
+#   *
+# (Sym (P/Forall from to_fun) wrapped id history) =
+#   let (fromp, fromn) = Wire
+#   let (xp, xn) = Wire
+#   let (post_varp, post_varn) = Wire
+#   let (to_typep, to_typen) = Wire
+#   let (post_var, to_type) = (to_fun xp)
+#   let * = (Interact
+#             (P/Forall 
+#               fromp
+#               λx
+#                 let * = (Interact x xn)
+#                 (post_varp, to_typep)
+#             )
+#             wrapped
+#           )
+#   let * = (Interact from (N/Sym fromn id (N/History/FrlFrm history)))
+#   let * = (Interact post_var (N/Sym post_varn id (N/History/FrlTo1 history)))
+#   let * = (Interact to_type (N/Sym to_typen id (N/History/FrlTo2 history)))
+#   *
+
+# (Sym (P/Sym wrapped0 id0 history0) wrapped1 id1 history1) =
+#   (Interact wrapped0 wrapped1)
+(Sym a wrapped id history) = (Interact a wrapped)

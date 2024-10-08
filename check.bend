@@ -11,7 +11,7 @@ Check: P -> P -> Bits -> (P, u24)
   let (A, is_aff_type) = (IsAff A)
   let res = (APP (P/Lam var bod) (P/Ann xp A oopath))
   let (res, chk) = (Check res B ipath)
-  ((P/Lam (PseudoEqual xn iopath is_aff_type) res), chk)
+  ((P/Lam xn res), chk)
 (Check (P/Lam var bod) (P/Forall from to_func) path) =
   let (xp, xn) = Wire
   let (opath, ipath) = (Bits/split path)
@@ -20,7 +20,7 @@ Check: P -> P -> Bits -> (P, u24)
   let (post_var, to_type) = (to_func (P/Ann xp from oopath))
   let res = (APP (P/Lam var bod) post_var)
   let (res, chk) = (Check res to_type ipath)
-  ((P/Lam (PseudoEqual xn iopath is_aff_type) res), chk)
+  ((P/Lam xn res), chk)
 
 (Check (P/Ann value type1 path1) type2 path2) =
   let (type1, type2, eql) = (RefinementOf type1 type2 path2)
@@ -33,31 +33,31 @@ Check: P -> P -> Bits -> (P, u24)
   let * = (Erase b)
   (a, 0)
 
-PseudoEqual: N -> Bits -> u24 -> N
-(PseudoEqual (N/Var f) path aff) =
-  let (path0, path1) = (Bits/duplicate path)
-  let idx = (Bits/to_u24 path0)
-  let arg = (Equal/fold f idx)
-  match arg {
-    FoldArg/Node: (PseudoEqual arg.node path1 aff)
-    FoldArg/Data: arg.var
-  }
-(PseudoEqual N/Era path aff) = N/Era
-(PseudoEqual N/Error path aff) = N/Error
-(PseudoEqual (N/App arg res) path aff) = (N/App arg res)
-(PseudoEqual (N/Dup a b) path aff) =
-  let (path0, path1) = 
-  (
-    if aff {
-      Bits/duplicate
-    } else {
-      Bits/split
-    }
-    path
-  )
-  let a = (PseudoEqual a path0 aff)
-  let b = (PseudoEqual b path1 aff)
-  (N/Dup a b)
+# PseudoEqual: N -> Bits -> u24 -> N
+# (PseudoEqual (N/Var f) path aff) =
+#   let (path0, path1) = (Bits/duplicate path)
+#   let idx = (Bits/to_u24 path0)
+#   let arg = (Equal/fold f idx)
+#   match arg {
+#     FoldArg/Node: (PseudoEqual arg.node path1 aff)
+#     FoldArg/Data: arg.var
+#   }
+# (PseudoEqual N/Era path aff) = N/Era
+# (PseudoEqual N/Error path aff) = N/Error
+# (PseudoEqual (N/App arg res) path aff) = (N/App arg res)
+# (PseudoEqual (N/Dup a b) path aff) =
+#   let (path0, path1) = 
+#   (
+#     if aff {
+#       Bits/duplicate
+#     } else {
+#       Bits/split
+#     }
+#     path
+#   )
+#   let a = (PseudoEqual a path0 aff)
+#   let b = (PseudoEqual b path1 aff)
+#   (N/Dup a b)
 
 IsAff: P -> (P, u24)
 (IsAff (P/Aff a)) = ((P/Aff a), 1)

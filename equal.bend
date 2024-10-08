@@ -72,7 +72,12 @@ N/Equal: N -> N -> Bits -> (N, N, u24)
   let (arg0, arg1, eql_arg) = (P/Equal arg0 arg1 opath)
   let (res0, res1, eql_res) = (N/Equal res0 res1 ipath)
   ((N/App arg0 res0), (N/App arg1 res1), (& eql_arg eql_res))
-
+(N/Equal (N/Sym wrapped0 id0 history0) (N/Sym wrapped1 id1 history1) path) =
+  (wrapped0, wrapped1, 0)
+(N/Equal a (N/Sym wrapped id history) path) =
+  (a, wrapped, 0)
+(N/Equal (N/Sym wrapped id history) b path) =
+  (wrapped, b, 0)
 P/Equal: P -> P -> Bits -> (P, P, u24)
 (P/Equal (P/Var (Var/Node a)) b path) = (P/Equal a b path)
 (P/Equal a (P/Var (Var/Node b)) path) = (P/Equal a b path)
@@ -198,6 +203,10 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
   ) 
 (P/Equal (P/Forall from to_func) b path) =
   ((P/Forall from to_func), b, 0)
+(P/Equal (P/Sym wrapped0 id0 history0) (P/Sym wrapped1 id1 history1) path) =
+  (wrapped0, wrapped1, 0)
+(P/Equal (P/Sym wrapped0 id0 history0) b path) =
+  (wrapped0, b, 0)
 
 unchecked Equal/fold: (Var -> None) -> u24 -> (FoldArg u24)
 (Equal/fold var_fun data) =

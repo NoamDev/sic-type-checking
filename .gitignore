@@ -1,2 +1,3 @@
 *.resolved
 *.hvm
+test/*

@@ -37,7 +37,9 @@ main =
                                       let (T0, T1) = (DUP T)
                                       (P/Era, (P/Arrow T0 T1)))
   let f = (LAM λx let * = (ERA x) (LAM λx x))
-  let (f, pi, chk) = (Check f pi Bits/E)
-  chk
+  let (f, chk) = (Check f pi Bits/E)
+  let (f, str) = (Print f)
+  (str, chk)
+
   # let (pi, str) = (Print pi)
   # str
