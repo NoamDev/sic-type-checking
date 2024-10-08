@@ -38,6 +38,7 @@ P/Show: P -> Bits -> (P, String)
   (P/Error, "Error")
 
 (P/Show P/None path) = (P/None, "None")
+(P/Show (P/Type) path) = (P/Type, "Type")
 (P/Show P/Error path) = (P/Error, "Error")
 (P/Show (P/Ann value type ann_path) path) =
   let (opath, ipath) = (Bits/split path)
@@ -104,8 +105,7 @@ P/Show: P -> Bits -> (P, String)
     str
   )
 (P/Show (P/Sym wrapped id history aff) path) =
-  let (wrapped, str) = (P/Show wrapped path)
-  (wrapped, "$")
+  ((P/Sym wrapped id history aff), "$")
 
 N/Show: N -> Bits -> (N, String)
 (N/Show (N/Era) path) = (N/Era, "*")
@@ -143,7 +143,7 @@ N/Show: N -> Bits -> (N, String)
     FoldArg/Data: (arg.var, idx2)
   }
 (N/Show (N/Sym wrapped id history aff) path) =
-  (N/Show wrapped path)
+  ((N/Sym wrapped id history aff), "$")
 
 unchecked Show/fold: (Var -> None) -> String -> (FoldArg String)
 (Show/fold var_fun data) =

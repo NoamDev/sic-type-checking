@@ -13,7 +13,8 @@ type P:
   Aff {type: P}
   Error
   Forall {from: P, to_fun: P -> (P, P)}
-  Sym {wrapped: P, id: Bits, history: P/History, aff: u24}  
+  Sym {wrapped: P, id: Bits, history: P/History, aff: u24}
+  Type
 
 type N:
   Era
@@ -198,6 +199,10 @@ Duplicate: P -> N -> N -> None
   let * = (Interact (P/Sym fstp id history0 aff) fst)
   let * = (Interact (P/Sym sndp id history1 aff) snd)
   *
+(Duplicate P/Type fst snd) =
+  let * = (Interact P/Type fst)
+  let * = (Interact P/Type snd)
+  *
 
 Apply: P -> P -> N -> None
 (Apply P/Era arg res) =
@@ -246,6 +251,8 @@ Apply: P -> P -> N -> None
     }
     value B arg res
   )
+(Apply (P/Ann value (P/Aff T) path) arg res) = (Apply (P/Ann value T path) arg res)
+(Apply (P/Ann value (P/Var (Var/Node T)) path) arg res) = (Apply (P/Ann value T path) arg res)
 
 (Apply (P/Ann value type path) arg res) =
   let * = (Interact value N/Error)
@@ -279,11 +286,16 @@ Apply: P -> P -> N -> None
   let * = (Interact arg (N/Sym argn id (N/History/AppArg history) aff))
   let * = (Interact (P/Sym resp id (P/History/AppRes history) aff) res)
   *
+(Apply P/Type arg res) =
+  let * = (Error arg)
+  let * = (Interact P/Error res)
+  *
 
 Erase: P -> None
 (Erase P/Era) = *
 (Erase P/None) = *
 (Erase P/Error) = *
+(Erase (P/Type)) = *
 (Erase (P/Lam arg res)) =
   let * = (Erase arg)
   let * = (Interact P/Era res)
@@ -319,6 +331,7 @@ Error: P -> None
 (Error P/Era) = *
 (Error P/None) = *
 (Error P/Error) = *
+(Error (P/Type)) = *
 (Error (P/Sup fst snd)) =
   let * = (Error fst)
   let * = (Error snd)
@@ -429,4 +442,5 @@ Sym: P -> N -> Bits -> N/History -> u24 -> None
 
 (Sym (P/Sym wrapped0 id0 history0 aff0) wrapped1 id1 history1 aff1) =
   (Interact wrapped0 wrapped1)
-# (Sym a wrapped id history) = (Interact a wrapped)
+Sym (P/Type) wrapped id history aff =
+  (Interact P/Type wrapped)

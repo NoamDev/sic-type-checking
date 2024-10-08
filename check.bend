@@ -27,6 +27,7 @@ Check: P -> P -> Bits -> (P, u24)
   let * = (Erase type1)
   let * = (Erase type2)
   (value, eql)
+(Check P/None P/Type path) = (P/None, 1)
 (Check (P/Var (Var/Node value)) type path) = (Check value type path)
 (Check value (P/Var (Var/Node type)) path) = (Check value type path)
 (Check a b path) = 
@@ -82,6 +83,7 @@ P/CleanSymbols: P -> Bits -> P
     ann_path
   )
 (P/CleanSymbols P/None path) = P/None
+(P/CleanSymbols P/Type path) = P/Type
 (P/CleanSymbols (P/Arrow from to) path) =
   (P/Arrow
     (P/CleanSymbols from path)

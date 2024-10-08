@@ -4,54 +4,118 @@ from dsl import *
 from check import *
 from equal import *
 
-main = 
-  # let f = (LAM λ$x $y)
-  # let g = (LAM λ$y $x)
-  # let (_, _, f_chk) = (Check f (P/Arrow P/None P/None) (Bits/O Bits/E))
-  # let (_, _, g_chk) = (Check g (P/Arrow P/None P/None) (Bits/I Bits/E))
-  # (f_chk, g_chk)
-  # let (a, a_aff) = (P/Affine (LAM λx let (x0, x1) = (DUP x) (APP x0 x1)) Bits/E)
-  # (a_aff, b_aff) 
-  # let p = Bits/E
-  # let (p0, p1) = (Bits/split p)
-  # let (p1, p2) = (Bits/split p1)
-  # let term =(LAM λ$x
-  #            let ($x0, $x1) = (DUP $x)
-  #            let * = (ERA $x0_)
-  #            $x1_)
-  # let (term, type, chk) = (Check  (P/Arrow (P/Aff P/None) P/None) p0)
-  # let ($x0_, $x1_, eql) = (P/Equal $x0 $x1 p1)
-  # (eql, chk)
-  # let (f, _, f_chk) = (Check (LAM λ$x $x_) (P/Arrow P/None P/None) p0)
-  # let (g, _, g_chk) = (Check (LAM λ$y $y_) (P/Arrow P/None P/None) p1)
-  # str
-  # $x
-  # λf (f f_chk g_chk eql)
-  # let (w0p, w0n) = Wire
-  # let (w1p, w1n) = Wire
-  # let w0n = (PseudoEqual w0n p0)
-  # let w1n = (PseudoEqual w1n p1)
-  # let (a, b, c) = (P/Equal w0p w1p p2)
-  # c
-  let pi = (P/Forall (P/Aff P/None) λT
-                                      let (T0, T1) = (DUP T)
-                                      (P/Era, (P/Arrow T0 T1)))
-  let arrow = (P/Arrow P/None (P/Arrow P/None P/None))
-  let (xp, xn) = Wire
-  let f = (LAM λx let * = (ERA x) (LAM λx x))
-  # let f = (P/CleanSymbols f (Bits/I Bits/E))
-  # let (f, chk) = (Check f (P/Arrow P/None (P/Arrow P/None P/None)) Bits/E)
-  # let (f, str) = (Print f)
-  # (
-  #   # chk,
-  #   # str,
-  #   f
-  # )
-  # f
-  # let (f, str) = (Print f)
-  # (str, chk, f)
-  let (f, chk) = (Check f pi Bits/E)
-  let (f, str) = (P/Show f Bits/E)
-  (str, chk)
-  # let (pi, str) = (Print pi)
-  # str
+PI: P -> (P -> P) -> P
+(PI T F) =
+  (P/Forall
+    (P/Aff T)
+    λx
+      let (x0, x1) = (DUP x)
+      (
+        x0,
+        (F x1)
+      )
+  )
+
+# Eq = (T: Type) (P: T -> Type) (h: P a) -> P b
+Eq: P -> P -> P -> P
+Eq = 
+    λT
+      λa
+      λb
+      (PI (P/Arrow T P/Type)
+          λP
+          let (P0, P1) = (DUP P)
+          (P/Arrow (APP P0 a) (APP P1 b))
+      )
+
+
+
+
+
+funext_type: P
+funext_type =
+  (PI
+    P/Type
+    λT
+    let (T0, T1) = (DUP T)
+    let (T00, T01) = (DUP T0)
+    let (T10, T11) = (DUP T1)
+    (PI P/Type
+      λU
+      let (U0, U1) = (DUP U)
+      let (U00, U01) = (DUP U0)
+      let (U10, U11) = (DUP U1)
+      (PI (P/Arrow T00 U00)
+        λf
+        let (f0, f1) = (DUP f)
+        (PI (P/Arrow T01 U01)
+          λg
+          let (g0, g1) = (DUP g)
+          (P/Arrow 
+            (PI T10
+              λt
+              let (t0, t1) = (DUP t)
+              (Eq U10 (APP f0 t0) (APP g0 t1))
+            )
+            (Eq (P/Arrow T11 U11) f1 g1)
+          )
+        )
+      )
+    )
+  )
+
+unchecked funext: P
+funext =
+  (LAM λT
+    let * = (Erase T)
+    (LAM λU
+      let * = (Erase U)
+      (LAM λf
+        let * = (Erase f)
+        (LAM λg
+          let * = (Erase g)
+          (LAM λh
+            # let * = (Erase h)
+            (LAM λP
+              # let * = (Erase P)
+                (LAM λa
+                  (APP
+                    (APP
+                      (APP
+                        h
+                        $t
+                      )
+                      (LAM λu 
+                        (APP P (LAM λ$t u))
+                      )
+                    )
+                    a
+                  )
+                )
+            )
+          )
+        )
+      )
+    )
+  )
+
+(IO/println x) = (IO/print (List/join [x "\n"]))
+
+checked main = 
+  # let none_eq_none_type = (Eq P/Type P/None P/None)
+  # let none_eq_none = (LAM λP let * = (ERA P) (LAM λx x))
+  # let (z, chk) = (Check none_eq_none none_eq_none_type Bits/E)
+
+  let (funext, chk) = (Check funext funext_type Bits/E)
+  let (funext_type, funext_type_str) = (Print funext_type)
+  let (funext, funext_str) = (Print funext)
+  with IO {
+    ask * = (IO/println funext_type_str)
+    ask * = (IO/println funext_str)
+    ask * = (IO/println (u24/to_string chk))
+    (wrap *)
+  }
+  # Pa
+  # (Print Pa)
+  # (P, P0)
+  # Pa

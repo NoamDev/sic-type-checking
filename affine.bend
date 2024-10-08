@@ -27,6 +27,7 @@ P/Affine: P -> Bits -> (P, u24)
   let * = (Fold other N/Error)
   (P/Error, 0)
 (P/Affine P/None path) = (P/None, 1)
+(P/Affine P/Type path) = (P/Type, 1)
 (P/Affine (P/Arrow A B) path) =
   let (path0, path1) = (Bits/duplicate path)
   let (A, A_aff) = (P/Affine A path0)

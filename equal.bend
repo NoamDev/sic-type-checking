@@ -73,11 +73,13 @@ N/Equal: N -> N -> Bits -> (N, N, u24)
   let (res0, res1, eql_res) = (N/Equal res0 res1 ipath)
   ((N/App arg0 res0), (N/App arg1 res1), (& eql_arg eql_res))
 (N/Equal (N/Sym wrapped0 id0 history0 aff0) (N/Sym wrapped1 id1 history1 aff1) path) =
-  (wrapped0, wrapped1, 0)
+  let id_eql = (Bits/equal id0 id1)
+  let history_eql = (N/History/Equal history0 history1)
+  ((N/Sym wrapped0 id0 history0 aff0), (N/Sym wrapped1 id1 history1 aff1), (& id_eql history_eql))
 (N/Equal a (N/Sym wrapped id history aff) path) =
-  (a, wrapped, 0)
+  (a, (N/Sym wrapped id history aff), 0)
 (N/Equal (N/Sym wrapped id history aff) b path) =
-  (wrapped, b, 0)
+  ((N/Sym wrapped id history aff), b, 0)
 P/Equal: P -> P -> Bits -> (P, P, u24)
 (P/Equal (P/Var (Var/Node a)) b path) = (P/Equal a b path)
 (P/Equal a (P/Var (Var/Node b)) path) = (P/Equal a b path)
@@ -146,6 +148,8 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
 
 (P/Equal P/None P/None path) = (P/None, P/None, 1)
 (P/Equal P/None b path) = (P/None, b, 0)
+(P/Equal P/Type P/Type path) = (P/Type, P/Type, 1)
+(P/Equal P/Type b path) = (P/Type, b, 0)
 (P/Equal P/Era P/Era path) = (P/Era, P/Era, 1)
 (P/Equal P/Era b path) = (P/Era, b, 0)
 
@@ -206,9 +210,9 @@ P/Equal: P -> P -> Bits -> (P, P, u24)
 (P/Equal (P/Sym wrapped0 id0 history0 aff0) (P/Sym wrapped1 id1 history1 aff1) path) =
   let id_eql = (Bits/equal id0 id1)
   let history_eql = (P/History/Equal history0 history1)
-  (wrapped0, wrapped1, (& id_eql history_eql))
+  ((P/Sym wrapped0 id0 history0 aff0), (P/Sym wrapped1 id1 history1 aff1), (& id_eql history_eql))
 (P/Equal (P/Sym wrapped0 id0 history0 aff0) b path) =
-  (wrapped0, b, 0)
+  ((P/Sym wrapped0 id0 history0 aff0), b, 0)
 
 unchecked Equal/fold: (Var -> None) -> u24 -> (FoldArg u24)
 (Equal/fold var_fun data) =
