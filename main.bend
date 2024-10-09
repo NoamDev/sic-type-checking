@@ -132,7 +132,6 @@ unchecked funext: P -> P
     # )
   # )
 
-(IO/println x) = (IO/print (List/join [x "\n"]))
 
 main = 
   # # let none_eq_none_type = (Eq P/Type P/None P/None)

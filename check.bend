@@ -20,7 +20,7 @@ Check: P -> P -> Bits -> (P, u24)
   let (post_var, to_type) = (to_func (P/Ann (P/Sym xp iopath P/History/E is_aff_type) from oopath 1))
   let res = (APP (P/Lam var bod) post_var)
   let (res, chk) = (Check res to_type ipath)
-  ((P/Lam xn (P/CleanSymbols res path)), chk)
+  ((P/Lam xn (P/CleanSymbols (P/CleanSymbols res path) path)), chk)
 (Check (P/Ann value type1 path1 ann_chk) type2 path2) =
   let (type1, type2, eql) = (RefinementOf type1 type2 path2)
   let * = (Erase type1)
@@ -105,6 +105,7 @@ P/CleanSymbols: P -> Bits -> P
 (P/CleanSymbols (P/Forall from to_fun) path) =
   let (xp, xn) = Wire
   let (post_var, type_to) = (to_fun xp)
+  # let xn = (N/CleanSymbols xn path)
   (P/Forall
     (P/CleanSymbols from path)
     λx
