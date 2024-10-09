@@ -21,12 +21,16 @@ Check: P -> P -> Bits -> (P, u24)
   let res = (APP (P/Lam var bod) post_var)
   let (res, chk) = (Check res to_type ipath)
   ((P/Lam xn (P/CleanSymbols res path)), chk)
-
 (Check (P/Ann value type1 path1 ann_chk) type2 path2) =
   let (type1, type2, eql) = (RefinementOf type1 type2 path2)
   let * = (Erase type1)
   let * = (Erase type2)
   (value, (& eql ann_chk))
+(Check value (P/Aff T) path) =
+  let (opath, ipath) = (Bits/split path)
+  let (value, aff) = (P/Affine value opath)
+  let (value, chk) = (Check value T ipath)
+  (value, chk)
 (Check P/None P/Type path) = (P/None, 1)
 (Check (P/Var (Var/Node value)) type path) = (Check value type path)
 (Check value (P/Var (Var/Node type)) path) = (Check value type path)

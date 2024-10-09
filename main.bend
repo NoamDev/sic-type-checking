@@ -135,52 +135,84 @@ unchecked funext: P -> P
 (IO/println x) = (IO/print (List/join [x "\n"]))
 
 main = 
-  # let none_eq_none_type = (Eq P/Type P/None P/None)
-  # let none_eq_none = (LAM λP let * = (ERA P) (LAM λx x))
-  # let (z, chk) = (Check none_eq_none none_eq_none_type Bits/E)
-  let type = 
-  (P/Arrow
-    (P/Arrow
-      P/None
-      (P/Arrow
-        (P/Arrow P/None (P/Arrow P/None P/None))
-        P/None
-      )
-    )
-    P/None
-  )
-  let term = 
-  (LAM λh
-    (APP
-      (APP h $t)
-      (LAM λu (LAM λ$t u))
-    )
-  )
-  # h: P/None -> (P/None -> P/None) -> P/None
-  # ((h $t) λ$t P/Era)
+  # # let none_eq_none_type = (Eq P/Type P/None P/None)
+  # # let none_eq_none = (LAM λP let * = (ERA P) (LAM λx x))
+  # # let (z, chk) = (Check none_eq_none none_eq_none_type Bits/E)
+  # let type = 
+  # (P/Arrow
+  #   (PI P/None
+  #     λt
+  #     let (t0, t1) = (DUP t)
+  #     (Eq P/None t0 t1)
+  #   )
+  #   (Eq (P/Arrow (P/Aff P/None) P/None) (LAM λx x) (LAM λx x))
+  # )
+
+  # # h: P/None -> (P/None -> P/None) -> P/None
+  # # ((h $t) λ$t P/Era)
   # let hole1 = (P/Hole λ$T *)
   # let hole2 = (P/Hole λ$U *)
   # let hole3 = (P/Hole λ$V *)
-  # let funext = (funext hole1 hole2 hole3)
-  let (t, chk) = (Check term type Bits/E)
-  # let (funext, chk) = (Check funext funext_type Bits/E)
-  # # let (funext_type, funext_type_str) = (Print funext_type)
-  # # let (funext, funext_str) = (Print funext)
+  # # let funext = (funext hole1 hole2 hole3)
+  # let term = 
+  # (LAM λh
+  #     # let * = (Erase h)
+  #   (LAM λP
+  #     # let * = (Erase P)
+  #     # let (P, $P_str) = (Print P)
+
+  #     (LAM λ a
+  #       let * = (Erase a)
+  #       # (APP
+  #         (APP
+  #       #     # let (h, $h_str) = (Print h)
+  #       #     # let (t, $t_str) = (Print $t)
+  #       #     # let (ht, $ht_str) = (Print )
+  #           let ht = (APP h P/Era)
+  #       #     # let (P, $P_str) = (Print P)
+  #           ht
+  #           (LAM λu
+  #       #       # let (pu, $pu_str) = (Print (APP P (LAM λ$t u)))
+  #             let pu = (APP P (LAM λ$t $t))
+  #             # let * = (ERA pu)
+  #             # ht
+  #             pu
+  #           )
+  #       #     # hole1
+  #         )
+  #       # a
+  #       # )
+  #     )
+  #   )
+  # )
+  # let (t, chk) = (Check term type Bits/E)
+  # # let (funext, chk) = (Check funext funext_type Bits/E)
+  # # # let (funext_type, funext_type_str) = (Print funext_type)
+  # # # let (funext, funext_str) = (Print funext)
   # let (_, h1) = (Print $T)
   # let (_, h2) = (Print $U)
   # let (_, h3) = (Print $V)
-  with IO {
-  # # # # #   # ask * = (IO/println funext_type_str)
-  # # # # #   # ask * = (IO/println funext_str)
-  #   # ask * = (IO/println h1)
-  #   # ask * = (IO/println h2)
-  #   # ask * = (IO/println h3)
-    ask * = (IO/println (u24/to_string chk))
-    (wrap chk)
-  }
-  # hole_type_str
-  # $T
-  # Pa
-  # (Print Pa)
-  # (P, P0)
-  # Pa
+  # with IO {
+  # # # # # #   # ask * = (IO/println funext_type_str)
+  # # # # # #   # ask * = (IO/println funext_str)
+  #   # ask * = (IO/println $h_str)
+  #   # ask * = (IO/println $t_str)
+  #   # ask * = (IO/println (List/join ["ht: " $ht_str]))
+  #   # ask * = (IO/println $htPu_str)
+  #   # ask * = (IO/println (List/join ["P: " $P_str]))
+  #   # ask * = (IO/println (List/join ["u: " $u_str]))
+  #   # ask * = (IO/println $pu_str)
+  #   ask * = (IO/println h1)
+  #   ask * = (IO/println h2)
+  #   ask * = (IO/println h3)
+  #   ask * = (IO/println (u24/to_string chk))
+  #   (wrap *)
+  # }
+  # # hole_type_str
+  # # $T
+  # # Pa
+  # # (Print Pa)
+  # # (P, P0)
+  # # Pa
+  let (_, chk) = (Check (LAM λx x) (P/Aff (P/Arrow P/None P/None)) Bits/E)
+  chk

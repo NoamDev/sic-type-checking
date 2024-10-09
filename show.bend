@@ -49,6 +49,11 @@ P/Show: P -> Bits -> (P, String)
     value_str
     ":"
     type_str
+    if ann_chk {
+      "V"
+    } else {
+      "X"
+    }
     "}"
   ])
   ((P/Ann value type ann_path ann_chk), str)
