@@ -35,7 +35,7 @@ P/Affine: P -> Bits -> (P, u24)
   ((P/Arrow A B), (& A_aff B_aff))
 (P/Affine (P/Ann value type ann_path ann_chk) path) =
   let (value, value_aff) = (P/Affine value path)
-  let (type, type_aff) = (P/Affine value path)
+  let (type, type_aff) = (P/Affine type path)
   ((P/Ann value type ann_path ann_chk), (& value_aff type_aff))
 (P/Affine (P/Aff type) path) =
   let (type, type_aff) = (P/Affine type path)

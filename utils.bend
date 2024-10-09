@@ -40,3 +40,5 @@ def u24/duplicate(n: u24) -> (u24, u24):
 
 (List/join List/Nil)         = ""
 (List/join (List/Cons x xs)) = (String/concat x (List/join xs))
+
+(IO/println str) = (IO/print (List/join [str "\n"]))

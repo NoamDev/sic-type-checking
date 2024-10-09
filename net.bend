@@ -331,9 +331,9 @@ Erase: P -> None
 (Erase P/None) = *
 (Erase P/Error) = *
 (Erase (P/Type)) = *
-(Erase (P/Lam arg res)) =
-  let * = (Erase arg)
-  let * = (Interact P/Era res)
+(Erase (P/Lam var bod)) =
+  let * = (Interact P/Era var)
+  let * = (Erase bod)
   *
 (Erase (P/Sup fst snd)) =
   let * = (Erase fst)
